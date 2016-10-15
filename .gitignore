@@ -1,0 +1,8 @@
+scratchpad
+Gemfile.lock
+.bundle
+.env
+*.sqlite3
+*.log
+pkg
+coverage
