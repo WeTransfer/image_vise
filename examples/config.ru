@@ -13,5 +13,7 @@ end
 use Rack::Cache, :metastore => 'file:tmp/cache/rack/meta', :entitystore  => 'file:tmp/cache/rack/entity', 
   :verbose => true, :allow_reload => false, :allow_revalidate => false
 
-# Serve runtime thumbnails with S3 caching
-run ImageVise.new
+# Serve runtime thumbnails, under a specific URL
+map '/images'do
+  run ImageVise
+end
