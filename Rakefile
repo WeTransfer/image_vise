@@ -18,10 +18,6 @@ Jeweler::Tasks.new do |gem|
   # When running as a gem, do not lock all of our versions
   # even though the lockfile is in the repo for running standalone
   gem.files.exclude "Gemfile.lock"
-  
-  # When used as a gem, image_vise will never run standalone. 
-  # So remove all the files used in development.
-  gem.files.exclude %w( Gemfile.lock config.ru )
 end
 
 Jeweler::RubygemsDotOrgTasks.new
