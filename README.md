@@ -8,8 +8,9 @@ framework. The main uses are:
 
 It is implemented as a Rack application that responds to any URL and accepts the following query string parameters:
 
-* `q` - Bese-64 encoded JSON object with `src_url` and `pipeline` properties
-* `sig` - the HMAC signature of the hash with `url`, `w` and `h` computed on a query-string encode of them
+* `q` - Base64 encoded JSON object with `src_url` and `pipeline` properties
+    (the source URL of the image and processing steps to apply)
+* `sig` - the HMAC signature, computed over the JSON in `q` before it gets Base64-encoded
 
 A request to `ImageVise` might look like this:
 
