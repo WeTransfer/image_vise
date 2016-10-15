@@ -132,7 +132,7 @@ same protocol (a signed JSON-encodded waybill of HTTP(S) source-URL + pipeline i
 
 ## Using forked child processes for RMagick tasks
 
-You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to any value to enable forking. When this
+You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
 variable is set, ImageVise will fork a child process and perform the image processing task within that process,
 killing it afterwards and deallocating all the memory. This can be extremely efficient for dealing with potential
 memory bloat issues in ImageMagick/RMagick. However, loading images into RMagick may hang in a forked child. This

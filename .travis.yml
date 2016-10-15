@@ -9,6 +9,7 @@ env:
   global:
     - SKIP_INTERACTIVE=yes
   matrix:
+    - IMAGE_VISE_ENABLE_FORK=no
     - IMAGE_VISE_ENABLE_FORK=yes
 
 matrix:

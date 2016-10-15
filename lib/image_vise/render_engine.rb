@@ -189,7 +189,7 @@ class ImageVise::RenderEngine
   end
   
   def enable_forking?
-    ENV.key? 'IMAGE_VISE_ENABLE_FORK'
+    ENV['IMAGE_VISE_ENABLE_FORK'] == 'yes'
   end
   
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
