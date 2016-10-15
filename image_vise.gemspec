@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.authors = ["Julik Tarkhanov"]
   s.date = "2016-10-15"
-  s.description = "Generates thumbnails and caches them to S3"
+  s.description = "Image processing via URLs"
   s.email = "me@julik.nl"
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -21,10 +21,9 @@ Gem::Specification.new do |s|
   s.files = [
     "Gemfile",
     "LICENSE.txt",
-    "Procfile",
     "README.md",
     "Rakefile",
-    "config.ru",
+    "examples/config.ru",
     "image_vise.gemspec",
     "lib/image_vise.rb",
     "lib/image_vise/auto_orient.rb",
@@ -68,7 +67,6 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<ks>, [">= 0"])
       s.add_runtime_dependency(%q<magic_bytes>, [">= 0"])
       s.add_development_dependency(%q<simplecov>, [">= 0"])
-      s.add_development_dependency(%q<dotenv>, [">= 0"])
       s.add_development_dependency(%q<rack-cache>, [">= 0"])
       s.add_development_dependency(%q<strenv>, [">= 0"])
       s.add_development_dependency(%q<addressable>, [">= 0"])
@@ -86,7 +84,6 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<ks>, [">= 0"])
       s.add_dependency(%q<magic_bytes>, [">= 0"])
       s.add_dependency(%q<simplecov>, [">= 0"])
-      s.add_dependency(%q<dotenv>, [">= 0"])
       s.add_dependency(%q<rack-cache>, [">= 0"])
       s.add_dependency(%q<strenv>, [">= 0"])
       s.add_dependency(%q<addressable>, [">= 0"])
@@ -105,7 +102,6 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<ks>, [">= 0"])
     s.add_dependency(%q<magic_bytes>, [">= 0"])
     s.add_dependency(%q<simplecov>, [">= 0"])
-    s.add_dependency(%q<dotenv>, [">= 0"])
     s.add_dependency(%q<rack-cache>, [">= 0"])
     s.add_dependency(%q<strenv>, [">= 0"])
     s.add_dependency(%q<addressable>, [">= 0"])
