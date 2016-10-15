@@ -16,7 +16,7 @@ A request to `ImageVise` might look like this:
     /?q=acbhGyfhyYErghff&sig=acfgheg123
 
 The URL that gets generated is best composed with the included `ImageVise.image_params` method. This method will
-take care of genrating the right JSON payload and signing it.
+take care of encoding the source URL and the commands in the right way, as well as signing.
 
 ## Using ImageVise within a Rails application
 
