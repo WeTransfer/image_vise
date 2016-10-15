@@ -159,9 +159,6 @@ multiple applications all using different keys for their signatures. Every reque
 each key and if at least one key generates the same signature for the same given parameters, it is going to be
 accepted and the request will be allowed to go through.
 
-When running `ImageVise` as a standalone application you can add set the `VISE_SECRET_KEYS` environment 
-variable to a comma-separated list of keys you are willing to accept (no spaces after the commas).
-
 ## Hostname validation
 
 By default, `ImageVise` will refuse to process images from URLs on "unknown" hosts. To mark a host as "known"
