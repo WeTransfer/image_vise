@@ -9,7 +9,6 @@ gem 'magic_bytes'
 
 group :development do
   gem 'simplecov'
-  gem 'dotenv'
   gem 'rack-cache'
   gem 'strenv'
   gem 'addressable', :require => %w( addressable/uri )

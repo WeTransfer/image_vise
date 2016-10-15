@@ -3,11 +3,9 @@ Bundler.require
 
 require 'addressable/uri'
 require 'strenv'
-require 'dotenv'
 require 'tmpdir'
 require_relative 'test_server'
 
-Dotenv.load
 
 TEST_RENDERS_DIR = Dir.mktmpdir
 
