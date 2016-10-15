@@ -1,6 +1,4 @@
-require File.dirname(__FILE__) + '/lib/vise'
-require 'dotenv'
-Dotenv.load
+require File.dirname(__FILE__) + '/lib/image_vise'
 
 # Add all the secret keys specified in the environment separated by a comma
 if ENV['VISE_SECRET_KEYS']
