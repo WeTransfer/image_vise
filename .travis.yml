@@ -1,0 +1,18 @@
+rvm:
+- 2.1
+- 2.2
+- 2.3.0
+sudo: false
+cache: bundler
+
+env:
+  global:
+    - SKIP_INTERACTIVE=yes
+  matrix:
+    - IMAGE_VISE_ENABLE_FORK=yes
+
+matrix:
+  allow_failures:
+    - env: IMAGE_VISE_ENABLE_FORK=yes
+
+script: bundle exec rspec
