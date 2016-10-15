@@ -55,11 +55,14 @@ and add the initialization code either to `config.ru` proper or to some file in 
 You might want to define a helper method for generating signed URLs as well, which will look something like this:
 
     def thumb_url(source_image_url)
-      qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipeline|
-         # For example, you can also yield `pipeline` to the caller
-        pipeline.fit_crop width: 128, height: 128, gravity: 'c'
+      qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
+        # For example, you can also yield `pipeline` to the caller
+        pipe.fit_crop width: 256, height: 256, gravity: 'c'
+        pipe.sharpen sigma: 0.5, radius: 2
+        pipe.ellipse_stencil
       end
-      '/images?' + Rack::Utils.build_query(qs_params)
+      # Output a URL to the app
+      '/images?' + Rack::Utils.build_query(image_request)
     end
 
 ## Operators and pipelining
@@ -143,42 +146,6 @@ So, this feature _does_ exist but your mileage may vary with regards to it's use
 The app is _designed_ to be run behind a frontline HTTP cache. The easiest is to use `Rack::Cache`, but this might
 be instance-local depending on the storage backend used. A much better idea is to run ImageVise behind a long-caching
 CDN.
-
-## Mounting within a Rack application
-
-In your `config.ru`, add
-
-    ImageVise.add_secret_key!(your_key)
-    run ImageVise.new
-
-## Mounting within a Rails application
-
-Make sure you can put `ImageVise` on a separate URL path, this is what is going to be used for generating the
-URLs. In your `routes.rb`, add
-
-    mount ImageVise => '/thumb'
-
-and implement a helper method for generating URLs into it:
-
-    def thumbnail_path_for_image_and_dimensions(full_source_image_url, width, height)
-      image_request = ImageVise.image_params(src_url: full_source_image_url, secret: 'l33t') do |pipe|
-        pipe.fit_crop width: 128, height: 256, gravity: 'c'
-        pipe.ellipse_stencil
-        pipe.sharpen sigma: 0.5, radius: 2
-      end
-      # Output a URL to the Sinatra app mounted within us
-      '/thumb?' + Rack::Utils.build_query(image_request)
-    end
-
-You will also want an initializer to add the same key, but to the `ImageVise` server:
-
-    ImageVise.add_secret_key!(ENV.fetch('THUMBNAILS_KEY'))
-
-Afterwards you can supplement that helper with another which will generate full URLs as opposed to paths only.
-The benefit of this approach is that you are free to decide when you will move `ImageVise` onto a separate
-standalone server.
-
-The first argument to the constructor is the URL where ImageVise is mounted externally.
 
 ## Shared HMAC keys for signed URLs
 
