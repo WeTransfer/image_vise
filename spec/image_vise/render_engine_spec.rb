@@ -172,6 +172,26 @@ describe ImageVise::RenderEngine do
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
     end
 
+    it 'expands and forbids a path outside of the permitted sources'
+
+    it 'URI-decodes the path in a file:// URL for a file with a Unicode path' do
+      utf8_file_path = File.dirname(test_image_path) + '/картинка.jpg'
+      FileUtils.cp_r(test_image_path, utf8_file_path)
+      uri = 'file://' + URI.encode(utf8_file_path)
+      
+      ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      get '/', params
+      File.unlink(utf8_file_path)
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+    end
+
     it 'returns the processed JPEG image as a PNG if it had to get an alpha channel during processing' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)

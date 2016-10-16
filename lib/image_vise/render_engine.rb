@@ -37,7 +37,7 @@ class ImageVise::RenderEngine
   def fetch_url_into_tempfile(source_image_uri)
     parsed = URI.parse(source_image_uri)
     if parsed.scheme == 'file'
-      copy_path_into_tempfile(parsed.path)
+      copy_path_into_tempfile(URI.decode(parsed.path))
     else
       fetch_url(source_image_uri)
     end
