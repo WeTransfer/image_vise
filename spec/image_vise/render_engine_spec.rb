@@ -64,7 +64,7 @@ describe ImageVise::RenderEngine do
 
     it 'halts with 422 when a file:// URL is given and filesystem access is not enabled' do
       uri = 'file://' + test_image_path
-      ImageVise.deny_filesystem_source!
+      ImageVise.deny_filesystem_sources!
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
@@ -160,7 +160,7 @@ describe ImageVise::RenderEngine do
 
     it 'picks the image from the filesystem if that is permitted' do
       uri = 'file://' + test_image_path
-      ImageVise.allow_filesystem_source!
+      ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')

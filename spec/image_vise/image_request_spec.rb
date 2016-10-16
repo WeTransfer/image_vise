@@ -11,12 +11,12 @@ describe ImageVise::ImageRequest do
     }
 
     image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-      permitted_source_hosts: ['bucket.s3.aws.com'], allow_filesystem_source: false)
+      permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
     request_qs_params = image_request.to_query_string_params('this is a secret')
     expect(request_qs_params).to be_kind_of(Hash)
 
     image_request_roundtrip = described_class.to_request(qs_params: request_qs_params,
-      secrets: ['this is a secret'], permitted_source_hosts: ['bucket.s3.aws.com'], allow_filesystem_source: false)
+      secrets: ['this is a secret'], permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
   end
 
   it 'forbids a file:// URL if the flag is not enabled' do
@@ -30,11 +30,11 @@ describe ImageVise::ImageRequest do
     
     expect {
       described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-        permitted_source_hosts: ['bucket.s3.aws.com'], allow_filesystem_source: false)
+        permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
     }.to raise_error(/filesystem access is disabled/)
   end
 
-  it 'allows a file:// URL if the flag is enabled' do
+  it 'allows a file:// URL if its path is within the permit list' do
     img_params = {src_url: 'file:///etc/passwd', pipeline: [[:auto_orient, {}]]}
     img_params_json = JSON.dump(img_params)
     signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', img_params_json)
@@ -44,7 +44,7 @@ describe ImageVise::ImageRequest do
     }
     
     image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-      permitted_source_hosts: ['bucket.s3.aws.com'], allow_filesystem_source: true)
+      permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: %w( /etc/* ))
     request_qs_params = image_request.to_query_string_params('this is a secret')
     expect(request_qs_params).to be_kind_of(Hash)
   end
@@ -78,7 +78,7 @@ describe ImageVise::ImageRequest do
       
       expect {
         described_class.to_request(qs_params: params,
-          secrets: ['b'], permitted_source_hosts: ['bucket.s3.aws.com'], allow_filesystem_source: false)
+          secrets: ['b'], permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
       }.to raise_error(/Invalid or missing signature/)
     end
   end

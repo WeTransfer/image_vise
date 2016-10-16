@@ -201,7 +201,7 @@ class ImageVise::RenderEngine
     {
       secrets: ImageVise.secret_keys,
       permitted_source_hosts: ImageVise.allowed_hosts,
-      allow_filesystem_source: ImageVise.filesystem_source_allowed?,
+      allowed_filesystem_patterns: ImageVise.allowed_filesystem_sources,
     }
   end
 

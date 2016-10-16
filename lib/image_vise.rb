@@ -13,7 +13,7 @@ class ImageVise
   @allowed_hosts = Set.new
   @keys = Set.new
   @operators = {}
-  @permit_filesystem_access = false
+  @allowed_glob_patterns = Set.new
 
   class << self
     # Resets all allowed hosts
@@ -36,16 +36,16 @@ class ImageVise
       S_MUTEX.synchronize { @keys.clear }
     end
     
-    def allow_filesystem_source!
-      S_MUTEX.synchronize { @permit_filesystem_access = true }
+    def allow_filesystem_source!(glob_pattern)
+      S_MUTEX.synchronize { @allowed_glob_patterns << glob_pattern }
     end
 
-    def deny_filesystem_source!
-      S_MUTEX.synchronize { @permit_filesystem_access = false }
+    def allowed_filesystem_sources
+      S_MUTEX.synchronize { @allowed_glob_patterns.to_a }
     end
 
-    def filesystem_source_allowed?
-      S_MUTEX.synchronize { !!@permit_filesystem_access }
+    def deny_filesystem_sources!
+      S_MUTEX.synchronize { @allowed_glob_patterns.clear }
     end
 
     # Adds a key against which the parameters are going to be verified.

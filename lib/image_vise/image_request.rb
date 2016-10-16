@@ -9,7 +9,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   
   # Initializes a new ParamsChecker from given HTTP server framework
   # params. The params can be symbol- or string-keyed, does not matter.
-  def self.to_request(qs_params:, secrets:, permitted_source_hosts:, allow_filesystem_source:)
+  def self.to_request(qs_params:, secrets:, permitted_source_hosts:, allowed_filesystem_patterns:)
     base64_encoded_params = qs_params.fetch(:q) rescue qs_params.fetch('q')
     given_signature = qs_params.fetch(:sig) rescue qs_params.fetch('sig')
     
@@ -27,8 +27,9 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     raise URLError, "the :src_url parameter must be non-empty" if src_url.empty?
 
     src_url = URI.parse(src_url)
-    if !allow_filesystem_source && src_url.scheme == 'file'
-      raise URLError, "#{src_url} not permitted since filesystem access is disabled" 
+    if src_url.scheme == 'file'
+      raise URLError, "#{src_url} not permitted since filesystem access is disabled" if allowed_filesystem_patterns.empty?
+      raise URLError, "#{src_url} is not on the path whitelist" unless allowed_path?(allowed_filesystem_patterns, src_url.path)
     elsif src_url.scheme != 'file'
       raise URLError, "#{src_url} is not permitted as source" unless permitted_source_hosts.include?(src_url.host)
     end
@@ -55,6 +56,11 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   end
 
   private
+
+  def self.allowed_path?(filesystem_glob_patterns, path_to_check)
+    expanded_path = File.expand_path(path_to_check)
+    filesystem_glob_patterns.any? {|pattern| File.fnmatch?(pattern, expanded_path) }
+  end
 
   def self.valid_signature?(for_payload, given_signature, secrets)
     # Check the signature against every key that we have,
