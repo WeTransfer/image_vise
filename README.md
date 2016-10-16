@@ -226,6 +226,8 @@ For [Appsignal](https://appsignal.com) you can use the following module instead:
       end
     end
 
+In both cases you need the overall Rack error handling middleware to be wrapping ImageVise, of course.
+
 ## State
 
 Except for the HTTP cache no state is stored (`ImageVise` does not care whether you store
