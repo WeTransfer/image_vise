@@ -6,7 +6,7 @@ require 'magic_bytes'
 require 'thread'
 
 class ImageVise
-  VERSION = '0.0.18'
+  VERSION = '0.0.19'
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
   
