@@ -210,6 +210,8 @@ you can add Sentry support by using the following module:
 For [Appsignal](https://appsignal.com) you can use the following module instead:
 
     module ImageViseAppsignal
+      ImageVise::RenderEngine.prepend self
+      
       def setup_error_handling(rack_env)
         txn = Appsignal::Transaction.current
         txn.set_action('%s#%s' % [self.class, 'call'])
