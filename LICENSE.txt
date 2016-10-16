@@ -19,3 +19,11 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+To anyone who acknowledges that the file "sRGB_v4_ICC_preference_displayclass" is
+provided "AS IS" WITH NO EXPRESS OR IMPLIED WARRANTY, permission to use,
+copy and distribute this file for any purpose is hereby granted without
+fee, provided that the file is not changed including the ICC copyright
+notice tag, and that the name of ICC shall not be used in advertising or
+publicity pertaining to distribution of the software without specific,
+written prior permission. ICC makes no representations about the
+suitability of this software for any purpose.

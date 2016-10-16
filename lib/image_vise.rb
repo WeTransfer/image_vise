@@ -5,7 +5,7 @@ require 'rmagick'
 require 'magic_bytes'
 
 class ImageVise
-  VERSION = '0.0.16'
+  VERSION = '0.0.17'
 
   @allowed_hosts = Set.new
   @keys = Set.new
