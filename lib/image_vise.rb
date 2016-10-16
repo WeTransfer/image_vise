@@ -3,45 +3,63 @@ require 'json'
 require 'patron'
 require 'rmagick'
 require 'magic_bytes'
+require 'thread'
 
 class ImageVise
-  VERSION = '0.0.17'
-
+  VERSION = '0.0.18'
+  S_MUTEX = Mutex.new
+  private_constant :S_MUTEX
+  
   @allowed_hosts = Set.new
   @keys = Set.new
   @operators = {}
-  
+  @permit_filesystem_access = false
+
   class << self
     # Resets all allowed hosts
     def reset_allowed_hosts!
-      @allowed_hosts.clear
+      S_MUTEX.synchronize { @allowed_hosts.clear }
     end
     
     # Add an allowed host
     def add_allowed_host!(hostname)
-      @allowed_hosts << hostname
+      S_MUTEX.synchronize { @allowed_hosts << hostname }
     end
     
     # Returns both the allowed hosts added at runtime and the ones set in the constant
     def allowed_hosts
-      @allowed_hosts.to_a
+      S_MUTEX.synchronize { @allowed_hosts.to_a }
     end
     
     # Removes all set keys
     def reset_secret_keys!
-      @keys.clear
+      S_MUTEX.synchronize { @keys.clear }
     end
     
+    def allow_filesystem_source!
+      S_MUTEX.synchronize { @permit_filesystem_access = true }
+    end
+
+    def deny_filesystem_source!
+      S_MUTEX.synchronize { @permit_filesystem_access = false }
+    end
+
+    def filesystem_source_allowed?
+      S_MUTEX.synchronize { !!@permit_filesystem_access }
+    end
+
     # Adds a key against which the parameters are going to be verified.
     # Multiple applications may have their own different keys, 
     # so we need to have multiple keys.
     def add_secret_key!(key)
-      @keys << key; self
+      S_MUTEX.synchronize { @keys << key }
+      self
     end
     
     # Returns the array of defined keys or raises an exception if no keys have been set yet
     def secret_keys
-      (@keys.any? && @keys.to_a) or raise "No keys set, add a key using `ImageVise.add_secret_key!(key)'"
+      keys = S_MUTEX.synchronize { @keys.any? && @keys.to_a }
+      keys or raise "No keys set, add a key using `ImageVise.add_secret_key!(key)'"
     end
     
     # Generate a set of querystring params for a resized image. Yields a Pipeline object that

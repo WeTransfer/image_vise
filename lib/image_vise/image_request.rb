@@ -1,4 +1,5 @@
 require 'base64'
+require 'rack'
 
 class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   class InvalidRequest < ArgumentError; end
@@ -8,7 +9,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   
   # Initializes a new ParamsChecker from given HTTP server framework
   # params. The params can be symbol- or string-keyed, does not matter.
-  def self.to_request(qs_params:, secrets:, permitted_source_hosts:)
+  def self.to_request(qs_params:, secrets:, permitted_source_hosts:, allow_filesystem_source:)
     base64_encoded_params = qs_params.fetch(:q) rescue qs_params.fetch('q')
     given_signature = qs_params.fetch(:sig) rescue qs_params.fetch('sig')
     
@@ -24,12 +25,18 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     # Pick up the URL and validate it
     src_url = params.fetch(:src_url).to_s
     raise URLError, "the :src_url parameter must be non-empty" if src_url.empty?
-    raise URLError, "#{src_url} is not permitted as source" unless valid_host?(src_url, permitted_source_hosts)
 
+    src_url = URI.parse(src_url)
+    if !allow_filesystem_source && src_url.scheme == 'file'
+      raise URLError, "#{src_url} not permitted since filesystem access is disabled" 
+    elsif src_url.scheme != 'file'
+      raise URLError, "#{src_url} is not permitted as source" unless permitted_source_hosts.include?(src_url.host)
+    end
+    
     # Build out the processing pipeline
     pipeline_definition = params.fetch(:pipeline)
 
-    new(src_url: src_url, pipeline: ImageVise::Pipeline.from_param(pipeline_definition))
+    new(src_url: src_url.to_s, pipeline: ImageVise::Pipeline.from_param(pipeline_definition))
   rescue KeyError => e
     raise InvalidRequest.new(e.message)
   end
@@ -59,10 +66,5 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
       seen_valid_signature ||= result_for_this_key
     end
     seen_valid_signature
-  end
-
-  def self.valid_host?(src_url, permitted_hosts)
-    parsed_url = URI.parse(src_url)
-    permitted_hosts.include?(parsed_url.host)
   end
 end

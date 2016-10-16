@@ -30,38 +30,50 @@ describe ImageVise::RenderEngine do
   end
 
   context 'when requesting an image' do
+    before :each do
+      parsed_url = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(parsed_url.host)
+    end
+
     after :each do
       ImageVise.reset_allowed_hosts!
       ImageVise.reset_secret_keys!
     end
     
-    context 'halts with 422' do
-      before :each do
-        parsed_url = Addressable::URI.parse(public_url)
-        ImageVise.add_allowed_host!(parsed_url.host)
-      end
+    it 'halts with 422 when the requested image cannot be opened by ImageMagick' do
+      uri = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+      uri.path = '/___nonexistent_image.jpg'
+      
+      p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+      
+      expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
+        File.open(path, 'wb') {|f| f << 'totally not an image' }
+        double(status: 200)
+      }
+      expect(app).to receive(:handle_request_error).and_call_original
+      
+      get '/', params
+      expect(last_response.status).to eq(422)
+      expect(last_response['Cache-Control']).to eq("private, max-age=0, no-cache")
+      expect(last_response.body).to include('Unsupported/unknown')
+    end
 
-      it 'when the requested image cannot be opened by ImageMagick' do
-        uri = Addressable::URI.parse(public_url)
-        ImageVise.add_allowed_host!(uri.host)
-        ImageVise.add_secret_key!('l33tness')
-        uri.path = '/___nonexistent_image.jpg'
-        
-        p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
-        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-        params = image_request.to_query_string_params('l33tness')
-        
-        expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
-          File.open(path, 'wb') {|f| f << 'totally not an image' }
-          double(status: 200)
-        }
-        expect(app).to receive(:handle_request_error).and_call_original
-        
-        get '/', params
-        expect(last_response.status).to eq(422)
-        expect(last_response['Cache-Control']).to eq("private, max-age=0, no-cache")
-        expect(last_response.body).to include('Unsupported/unknown')
-      end
+    it 'halts with 422 when a file:// URL is given and filesystem access is not enabled' do
+      uri = 'file://' + test_image_path
+      ImageVise.deny_filesystem_source!
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      get '/', params
+      expect(last_response.status).to eq(422)
+      expect(last_response.body).to include('filesystem access is disabled')
     end
     
     it 'responds with 403 when upstream returns it' do
@@ -145,7 +157,21 @@ describe ImageVise::RenderEngine do
       parsed_image = Magick::Image.from_blob(last_response.body)[0]
       expect(parsed_image.columns).to eq(10)
     end
-    
+
+    it 'picks the image from the filesystem if that is permitted' do
+      uri = 'file://' + test_image_path
+      ImageVise.allow_filesystem_source!
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      get '/', params
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+    end
+
     it 'returns the processed JPEG image as a PNG if it had to get an alpha channel during processing' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)

@@ -35,20 +35,12 @@ class ImageVise::RenderEngine
   
   # Fetch the given URL into a Tempfile and return the File object
   def fetch_url_into_tempfile(source_image_uri)
-    tf = Tempfile.new('source-imagevise-image')
-    s = Patron::Session.new
-    s.automatic_content_encoding = true
-    s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    s.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    response = s.get_file(source_image_uri, tf.path)
-    if PASSTHROUGH_STATUS_CODES.include?(response.status)
-      tf.close; tf.unlink;
-      bail response.status, "Unfortunate upstream response: #{response.status}" 
+    parsed = URI.parse(source_image_uri)
+    if parsed.scheme == 'file'
+      copy_path_into_tempfile(parsed.path)
+    else
+      fetch_url(source_image_uri)
     end
-    tf
-  rescue Exception => e
-    tf.close; tf.unlink;
-    raise e
   end
   
   def bail(status, *errors_array)
@@ -76,9 +68,7 @@ class ImageVise::RenderEngine
     bail(405, 'Only GET supported') unless req.get?
 
     # Validate the inputs
-    image_request = ImageVise::ImageRequest.to_request(qs_params: req.params,
-        secrets: ImageVise.secret_keys,
-        permitted_source_hosts: ImageVise.allowed_hosts)
+    image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, **image_request_options)
 
     # Recover the source image URL and the pipeline instructions (all the image ops)
     source_image_uri, pipeline = image_request.src_url, image_request.pipeline
@@ -206,5 +196,43 @@ class ImageVise::RenderEngine
   ensure
     ImageVise.destroy(magick_image)
   end
-  
+
+  def image_request_options
+    {
+      secrets: ImageVise.secret_keys,
+      permitted_source_hosts: ImageVise.allowed_hosts,
+      allow_filesystem_source: ImageVise.filesystem_source_allowed?,
+    }
+  end
+
+  def fetch_url(source_image_uri)
+    tf = binary_tempfile
+    s = Patron::Session.new
+    s.automatic_content_encoding = true
+    s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
+    s.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
+    response = s.get_file(source_image_uri, tf.path)
+    if PASSTHROUGH_STATUS_CODES.include?(response.status)
+      tf.close; tf.unlink;
+      bail response.status, "Unfortunate upstream response: #{response.status}" 
+    end
+    tf
+  rescue Exception => e
+    tf.close; tf.unlink;
+    raise e
+  end
+
+  def copy_path_into_tempfile(path_on_filesystem)
+    tf = binary_tempfile
+    File.open(path_on_filesystem, 'rb') do |f|
+      IO.copy_stream(f, tf)
+    end
+    tf.rewind; tf
+  rescue Errno::ENOENT
+    bail 404, "Image file not found" 
+  rescue Exception => e
+    tf.close; tf.unlink;
+    raise e
+  end
+
 end
