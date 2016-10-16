@@ -57,7 +57,6 @@ You might want to define a helper method for generating signed URLs as well, whi
 
     def thumb_url(source_image_url)
       qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
-        # For example, you can also yield `pipeline` to the caller
         pipe.fit_crop width: 256, height: 256, gravity: 'c'
         pipe.sharpen sigma: 0.5, radius: 2
         pipe.ellipse_stencil
@@ -65,6 +64,15 @@ You might want to define a helper method for generating signed URLs as well, whi
       # Output a URL to the app
       '/images?' + Rack::Utils.build_query(image_request)
     end
+
+
+## Processing files on the local filesystem instead of remote ones
+
+If you want to grab a local file, compose a `file://` URL (mind the endcoding!)
+
+    src_url = 'file://' + URI.encode(File.expand_path(my_pic))
+
+Note that you need to permit certain glob patterns as sources before this will work, see below.
 
 ## Operators and pipelining
 
@@ -160,25 +168,24 @@ multiple applications all using different keys for their signatures. Every reque
 each key and if at least one key generates the same signature for the same given parameters, it is going to be
 accepted and the request will be allowed to go through.
 
-## Hostname validation
+## Hostname and filesystem validation
 
 By default, `ImageVise` will refuse to process images from URLs on "unknown" hosts. To mark a host as "known"
 tell `ImageVise` to
 
     ImageVise.add_allowed_host!('my-image-store.ourcompany.co.uk')
 
+If you want to permit images from the local server filesystem to be accessed, add the glob pattern
+to the set of allowed filesystem patterns:
+
+    ImageVise.allow_filesystem_source!(Rails.root + '/public/*.jpg')
+
+Note that these are _glob_ patterns. The image path will be checked against them using `File.fnmatch`.
+
 ## State
 
 Except for the HTTP cache for redirects et.al no state is stored (`ImageVise` does not care whether you store
 your images using Dragonfly, CarrierWave or some custom handling code). All the app needs is the full URL.
-
-## FAQ
-
-* _Yo dawg, I thought you like URLs so I have put encoded URL in your URL so you can..._ - well, the only alternative
-  is also managing image storage, and this something we want to avoid to keep `ImageVise` stateless
-* _But the URLs can be exploited_ - this is highly unlikely if you pick strong keys for the HMAC signatures
-* _I can load any image into the thumbnailer_ - in fact, no. First you have the URL checks, and then - all the URLs
-  are supposed to be coming from the sources you trust since they are signed.
 
 ## Running the tests, versioning, contributing
 
