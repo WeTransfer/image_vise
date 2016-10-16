@@ -182,9 +182,51 @@ to the set of allowed filesystem patterns:
 
 Note that these are _glob_ patterns. The image path will be checked against them using `File.fnmatch`.
 
+## Handling errors within the rendering Rack app
+
+By default, the Rack app within ImageVise swallows all exceptions and returns the error message
+within a machine-readable JSON payload. If that doesn't work for you, or you want to add error
+handling using some error tracking provider, either subclass `ImageVise::RenderEngine` or prepend
+a module into it that will intercept the errors. For example, [Sentry](https://sentry.io) has a neat
+property of picking up `rack.exception` from the Rack request env. Using the hooks in the render engine,
+you can add Sentry support by using the following module:
+
+    module ImageViseSentrySupport
+      ImageVise::RenderEngine.prepend self
+    
+      def setup_error_handling(rack_env)
+        @env = rack_env
+      end
+    
+      def handle_request_error(err)
+        @env['rack.exception'] = err
+      end
+    
+      def handle_generic_error(err)
+        @env['rack.exception'] = err
+      end
+    end
+
+For [Appsignal](https://appsignal.com) you can use the following module instead:
+
+    module ImageViseAppsignal
+      def setup_error_handling(rack_env)
+        txn = Appsignal::Transaction.current
+        txn.set_action('%s#%s' % [self.class, 'call'])
+      end
+    
+      def handle_request_error(err)
+        Appsignal.add_exception(err)
+      end
+    
+      def handle_generic_error(err)
+        Appsignal.add_exception(err)
+      end
+    end
+
 ## State
 
-Except for the HTTP cache for redirects et.al no state is stored (`ImageVise` does not care whether you store
+Except for the HTTP cache no state is stored (`ImageVise` does not care whether you store
 your images using Dragonfly, CarrierWave or some custom handling code). All the app needs is the full URL.
 
 ## Running the tests, versioning, contributing
