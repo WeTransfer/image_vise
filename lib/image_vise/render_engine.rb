@@ -234,7 +234,7 @@ class ImageVise::RenderEngine
 
   def copy_path_into_tempfile(path_on_filesystem)
     tf = binary_tempfile
-    real_path_on_filesystem = File.realpath(File.expand_path(path_on_filesystem))
+    real_path_on_filesystem = File.expand_path(path_on_filesystem)
     File.open(real_path_on_filesystem, 'rb') do |f|
       IO.copy_stream(f, tf)
     end
