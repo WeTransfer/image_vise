@@ -18,10 +18,14 @@ class ImageVise::RenderEngine
   # How long is a render (the ImageMagick/write part) is allowed to
   # take before we kill it
   RENDER_TIMEOUT_SECONDS = 10
-  
+
   # Which input files we permit (based on extensions stored in MagicBytes)
-  PERMITTED_EXTENSIONS = %w( gif png jpg )
-  
+  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg )
+
+  # Which output files are permitted (regardless of the input format
+  # the processed images will be converted to one of these types)
+  PERMITTED_OUTPUT_FILE_EXTENSIONS = %W( gif png jpg)
+
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
   
@@ -81,6 +85,9 @@ class ImageVise::RenderEngine
     
     # Make sure we do not try to process something...questionable
     source_file_type = detect_file_type(source_file)
+    unless source_file_type_permitted?(source_file_type)
+      raise UnsupportedInputFormat.new("Unsupported/unknown input file format .%s" % source_file_type.ext)
+    end
     
     # Perform the processing
     if enable_forking?
@@ -136,13 +143,17 @@ class ImageVise::RenderEngine
   
   def detect_file_type(tempfile)
     tempfile.rewind
-    
-    file_info = MagicBytes.read_and_detect(tempfile)
-    return file_info if PERMITTED_EXTENSIONS.include?(file_info.ext)
-    raise UnsupportedInputFormat.new("Unsupported/unknown input file format .%s" %
-       file_info.ext)
+    MagicBytes.read_and_detect(tempfile)
   end
-  
+
+  def source_file_type_permitted?(magick_bytes_file_info)
+    PERMITTED_SOURCE_FILE_EXTENSIONS.include?(magick_bytes_file_info.ext)
+  end
+
+  def output_file_type_permitted?(magick_bytes_file_info)
+    PERMITTED_OUTPUT_FILE_EXTENSIONS.include?(magick_bytes_file_info.ext)
+  end
+
   # Lists exceptions that should lead to the request being flagged
   # as invalid (and not 5xx). Decent clients should _not_ retry those requests.
   def permanent_failures
@@ -188,6 +199,7 @@ class ImageVise::RenderEngine
     # If processing the image has created an alpha channel, use PNG always.
     # Otherwise, keep the original format for as far as the supported formats list goes.
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
+    render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
     
     magick_image.format = render_file_type.ext
     magick_image.write(render_to_path)
@@ -227,6 +239,7 @@ class ImageVise::RenderEngine
     end
     tf.rewind; tf
   rescue Errno::ENOENT
+    tf.close; tf.unlink;
     bail 404, "Image file not found" 
   rescue Exception => e
     tf.close; tf.unlink;

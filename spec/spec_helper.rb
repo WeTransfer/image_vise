@@ -64,12 +64,28 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour.jpg')
   end
 
+  def test_image_path_psd
+    File.expand_path(__dir__ + '/waterside_magic_hour.psd')
+  end
+
+  def test_image_path_tif
+    File.expand_path(__dir__ + '/waterside_magic_hour_gray.tif')
+  end
+
   def test_image_adobergb_path
     File.expand_path(__dir__ + '/waterside_magic_hour_adobergb.jpg')
   end
 
   def public_url
     'http://localhost:9001/waterside_magic_hour.jpg'
+  end
+
+  def public_url_psd
+    'http://localhost:9001/waterside_magic_hour.psd'
+  end
+
+  def public_url_tif
+    'http://localhost:9001/waterside_magic_hour_gray.tif'
   end
 
   config.around :each do |e|

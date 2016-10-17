@@ -209,5 +209,74 @@ describe ImageVise::RenderEngine do
 
       examine_image_from_string(last_response.body)
     end
+
+    it 'forbids a PSD file by default' do
+      uri = Addressable::URI.parse(public_url_psd)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220').ellipse_stencil
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      get '/', params
+      expect(last_response.status).to eq(422)
+      expect(last_response.body).to include('unknown input file format .psd')
+    end
+
+    it 'permits a PSD file if it is permitted via a method override' do
+      uri = Addressable::URI.parse(public_url_psd)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      class << app
+        def source_file_type_permitted?(type); true; end
+      end
+
+      get '/', params
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/png')
+    end
+    
+    it 'outputs a converted TIFF file as a PNG' do
+      uri = Addressable::URI.parse(public_url_tif)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      class << app
+        def source_file_type_permitted?(type); true; end
+      end
+
+      get '/', params
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/png')
+    end
+    
+    it 'outputs a converted TIFF file in the TIFF format if it is on the permitted list' do
+      uri = Addressable::URI.parse(public_url_tif)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      class << app
+        def source_file_type_permitted?(type); true; end
+        def output_file_type_permitted?(type); true; end
+      end
+
+      get '/', params
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/tiff')
+    end
   end
 end
