@@ -4,6 +4,8 @@ require 'patron'
 require 'rmagick'
 require 'magic_bytes'
 require 'thread'
+require 'base64'
+require 'rack'
 
 class ImageVise
   VERSION = '0.0.19'
