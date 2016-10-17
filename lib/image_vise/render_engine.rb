@@ -106,7 +106,7 @@ class ImageVise::RenderEngine
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
       'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => 'public',
+      'Cache-Control' => 'public, no-transform, max-age=2592000',
       'ETag' => etag
     })
 
