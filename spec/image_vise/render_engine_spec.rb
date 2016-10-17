@@ -129,7 +129,7 @@ describe ImageVise::RenderEngine do
       
       expect(last_response).to be_ok
       expect(last_response['ETag']).not_to be_nil
-      expect(last_response['Cache-Control']).to eq('public')
+      expect(last_response['Cache-Control']).to match(/public/)
       
       get '/', params, {'HTTP_IF_NONE_MATCH' => last_response['ETag']}
       expect(last_response.status).to eq(304)
