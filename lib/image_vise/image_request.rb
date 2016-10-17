@@ -25,8 +25,9 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
 
     src_url = URI.parse(src_url)
     if src_url.scheme == 'file'
+      file_path = URI.decode(src_url.path)
       raise URLError, "#{src_url} not permitted since filesystem access is disabled" if allowed_filesystem_patterns.empty?
-      raise URLError, "#{src_url} is not on the path whitelist" unless allowed_path?(allowed_filesystem_patterns, src_url.path)
+      raise URLError, "#{src_url} is not on the path whitelist" unless allowed_path?(allowed_filesystem_patterns, file_path)
     elsif src_url.scheme != 'file'
       raise URLError, "#{src_url} is not permitted as source" unless permitted_source_hosts.include?(src_url.host)
     end
