@@ -37,8 +37,10 @@ describe ImageVise::Pipeline do
     pipeline = subject.
       auto_orient.
       fit_crop(width: 48, height: 48, gravity: 'c').
+      srgb.
       sharpen(radius: 2, sigma: 0.5).
-      ellipse_stencil
+      ellipse_stencil.
+      strip_metadata
     
     image = Magick::Image.read(test_image_path)[0]
     pipeline.apply! image
