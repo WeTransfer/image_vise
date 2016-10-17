@@ -1,6 +1,4 @@
 class ImageVise::RenderEngine
-  require_relative 'image_request'
-  require_relative 'file_response'
   class UnsupportedInputFormat < StandardError; end
   class EmptyRender < StandardError; end
 
