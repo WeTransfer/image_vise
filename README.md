@@ -23,30 +23,38 @@ take care of encoding the source URL and the commands in the right way, as well 
 
 Mount ImageVise in your `routes.rb`:
 
-    mount '/images' => ImageVise
+```ruby
+mount '/images' => ImageVise
+```
 
 and add an initializer (like `config/initializers/image_vise_config.rb`) to set up the permitted hosts
 
-    ImageVise.add_allowed_host! your_application_hostname
-    ImageVise.add_secret_key! ENV.fetch('IMAGE_VISE_SECRET')
+```ruby
+ImageVise.add_allowed_host! your_application_hostname
+ImageVise.add_secret_key! ENV.fetch('IMAGE_VISE_SECRET')
+```
 
 You might want to define a helper method for generating signed URLs as well, which will look something like this:
 
-    def thumb_url(source_image_url)
-      qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipeline|
-         # For example, you can also yield `pipeline` to the caller
-        pipeline.fit_crop width: 128, height: 128, gravity: 'c'
-      end
-      '/images?' + Rack::Utils.build_query(qs_params) # or use url_for...
-    end
+```ruby
+def thumb_url(source_image_url)
+  qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipeline|
+     # For example, you can also yield `pipeline` to the caller
+    pipeline.fit_crop width: 128, height: 128, gravity: 'c'
+  end
+  '/images?' + Rack::Utils.build_query(qs_params) # or use url_for...
+end
+```
 
 ## Using ImageVise within a Rack application
 
 Mount ImageVise under a script name in your `config.ru`:
 
-    map '/images' do
-      run ImageVise
-    end
+```ruby
+map '/images' do
+  run ImageVise
+end
+```
 
 and add the initialization code either to `config.ru` proper or to some file in your application:
 
@@ -55,16 +63,17 @@ and add the initialization code either to `config.ru` proper or to some file in 
 
 You might want to define a helper method for generating signed URLs as well, which will look something like this:
 
-    def thumb_url(source_image_url)
-      qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
-        pipe.fit_crop width: 256, height: 256, gravity: 'c'
-        pipe.sharpen sigma: 0.5, radius: 2
-        pipe.ellipse_stencil
-      end
-      # Output a URL to the app
-      '/images?' + Rack::Utils.build_query(image_request)
-    end
-
+```ruby
+def thumb_url(source_image_url)
+  qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
+    pipe.fit_crop width: 256, height: 256, gravity: 'c'
+    pipe.sharpen sigma: 0.5, radius: 2
+    pipe.ellipse_stencil
+  end
+  # Output a URL to the app
+  '/images?' + Rack::Utils.build_query(image_request)
+end
+```
 
 ## Processing files on the local filesystem instead of remote ones
 
@@ -93,27 +102,32 @@ of decent image filtering choices in ImageMagick proper).
 
 Here is an example pipeline, JSON-encoded (this is what is passed in the URL):
 
-    [
-      ["auto_orient", {}],
-      ["geom", {"geometry_string": "512x512"}],
-      ["fit_crop", {"width": 32, "height": 32, "gravity": "se"}],
-      ["sharpen", {"radius": 0.75, "sigma": 0.5}],
-      ["ellipse_stencil", {}]
-    ]
+```json
+[
+  ["auto_orient", {}],
+  ["geom", {"geometry_string": "512x512"}],
+  ["fit_crop", {"width": 32, "height": 32, "gravity": "se"}],
+  ["sharpen", {"radius": 0.75, "sigma": 0.5}],
+  ["ellipse_stencil", {}]
+]
+```
 
 The same pipeline can be created using the `Pipeline` DSL:
 
-    pipe = Pipeline.new.
-      auto_orient.
-      geom(geometry_string: '512x512').
-      fit_crop(width: 32, height: 32, gravity: 'se').
-      sharpen(radius: 0.75, sigma: 0.5).
-      ellipse_stencil
-
+```ruby
+pipe = Pipeline.new.
+  auto_orient.
+  geom(geometry_string: '512x512').
+  fit_crop(width: 32, height: 32, gravity: 'se').
+  sharpen(radius: 0.75, sigma: 0.5).
+  ellipse_stencil
+```
 and can then be applied to a `Magick::Image` object:
 
-     image = Magick::Image.read(my_image_path)[0]
-     pipe.apply!(image)
+```ruby
+image = Magick::Image.read(my_image_path)[0]
+pipe.apply!(image)
+```
 
 ## Performance and memory
 
@@ -161,7 +175,9 @@ CDN.
 To allow `ImageVise` to recognize the signature when the signature is going to be received, add it to the list
 of the shared keys on the `ImageVise` server:
 
-    ImageVise.add_secret_key!('ahoy! this is a secret!')
+```ruby
+ImageVise.add_secret_key!('ahoy! this is a secret!')
+```
 
 A single `ImageVise` server can maintain multiple signature keys, so that you will be able to generate thumbnails from
 multiple applications all using different keys for their signatures. Every request will be validated against
@@ -173,12 +189,16 @@ accepted and the request will be allowed to go through.
 By default, `ImageVise` will refuse to process images from URLs on "unknown" hosts. To mark a host as "known"
 tell `ImageVise` to
 
-    ImageVise.add_allowed_host!('my-image-store.ourcompany.co.uk')
+```ruby
+ImageVise.add_allowed_host!('my-image-store.ourcompany.co.uk')
+```
 
 If you want to permit images from the local server filesystem to be accessed, add the glob pattern
 to the set of allowed filesystem patterns:
 
-    ImageVise.allow_filesystem_source!(Rails.root + '/public/*.jpg')
+```ruby
+ImageVise.allow_filesystem_source!(Rails.root + '/public/*.jpg')
+```
 
 Note that these are _glob_ patterns. The image path will be checked against them using `File.fnmatch`.
 
@@ -191,21 +211,23 @@ a module into it that will intercept the errors. For example, [Sentry](https://s
 property of picking up `rack.exception` from the Rack request env. Using the hooks in the render engine,
 you can add Sentry support by using the following module:
 
-    module ImageViseSentrySupport
-      ImageVise::RenderEngine.prepend self
-    
-      def setup_error_handling(rack_env)
-        @env = rack_env
-      end
-    
-      def handle_request_error(err)
-        @env['rack.exception'] = err
-      end
-    
-      def handle_generic_error(err)
-        @env['rack.exception'] = err
-      end
-    end
+```ruby
+module ImageViseSentrySupport
+  ImageVise::RenderEngine.prepend self
+
+  def setup_error_handling(rack_env)
+    @env = rack_env
+  end
+
+  def handle_request_error(err)
+    @env['rack.exception'] = err
+  end
+
+  def handle_generic_error(err)
+    @env['rack.exception'] = err
+  end
+end
+```
 
 For [Appsignal](https://appsignal.com) you can use the following module instead:
 
