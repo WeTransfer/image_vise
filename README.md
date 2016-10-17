@@ -231,22 +231,24 @@ end
 
 For [Appsignal](https://appsignal.com) you can use the following module instead:
 
-    module ImageViseAppsignal
-      ImageVise::RenderEngine.prepend self
-      
-      def setup_error_handling(rack_env)
-        txn = Appsignal::Transaction.current
-        txn.set_action('%s#%s' % [self.class, 'call'])
-      end
-    
-      def handle_request_error(err)
-        Appsignal.add_exception(err)
-      end
-    
-      def handle_generic_error(err)
-        Appsignal.add_exception(err)
-      end
-    end
+```ruby
+module ImageViseAppsignal
+  ImageVise::RenderEngine.prepend self
+  
+  def setup_error_handling(rack_env)
+    txn = Appsignal::Transaction.current
+    txn.set_action('%s#%s' % [self.class, 'call'])
+  end
+
+  def handle_request_error(err)
+    Appsignal.add_exception(err)
+  end
+
+  def handle_generic_error(err)
+    Appsignal.add_exception(err)
+  end
+end
+```
 
 In both cases you need the overall Rack error handling middleware to be wrapping ImageVise, of course.
 
