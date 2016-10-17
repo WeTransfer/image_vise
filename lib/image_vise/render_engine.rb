@@ -15,6 +15,14 @@ class ImageVise::RenderEngine
     'Cache-Control' => 'private, max-age=0, no-cache'
   }).freeze
   
+  # "public" of course. Add max-age so that there is _some_
+  # revalidation after a time (otherwise some proxies treat it
+  # as "must-revalidate" always), and "no-transform" so that
+  # various deflate schemes are not applied to it (does happen
+  # with Rack::Cache and leads Chrome to throw up on content
+  # decoding for example).
+  IMAGE_CACHE_CONTROL = 'public, no-transform, max-age=2592000'
+  
   # How long is a render (the ImageMagick/write part) is allowed to
   # take before we kill it
   RENDER_TIMEOUT_SECONDS = 10
@@ -106,7 +114,7 @@ class ImageVise::RenderEngine
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
       'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => 'public, no-transform, max-age=2592000',
+      'Cache-Control' => IMAGE_CACHE_CONTROL,
       'ETag' => etag
     })
 
