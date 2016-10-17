@@ -55,7 +55,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   private
 
   def self.allowed_path?(filesystem_glob_patterns, path_to_check)
-    expanded_path = File.expand_path(path_to_check)
+    expanded_path = File.realpath(File.expand_path(path_to_check))
     filesystem_glob_patterns.any? {|pattern| File.fnmatch?(pattern, expanded_path) }
   end
 
