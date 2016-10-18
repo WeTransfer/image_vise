@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'bundler'
 gem 'patron', '~> 0.6'
 gem 'rmagick', '~> 2.15', :require => 'rmagick'
 gem 'exceptional_fork', '~> 1.2'
@@ -8,6 +7,7 @@ gem 'ks'
 gem 'magic_bytes'
 
 group :development do
+  gem 'bundler'
   gem 'simplecov'
   gem 'rack-cache'
   gem 'strenv'
