@@ -129,16 +129,6 @@ image = Magick::Image.read(my_image_path)[0]
 pipe.apply!(image)
 ```
 
-## Using forked child processes for RMagick tasks
-
-You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
-variable is set, ImageVise will fork a child process and perform the image processing task within that process,
-killing it afterwards and deallocating all the memory. This can be extremely efficient for dealing with potential
-memory bloat issues in ImageMagick/RMagick. However, loading images into RMagick may hang in a forked child. This
-will lead to the child being timeout-terminated, and no image is going to be rendered. This issue is known and
-also platform-dependent (it does not happen on OSX but does happen on Docker within Ubuntu Trusty for instance).
-
-So, this feature _does_ exist but your mileage may vary with regards to it's use.
 
 ## Caching
 
@@ -183,50 +173,18 @@ Note that these are _glob_ patterns. The image path will be checked against them
 By default, the Rack app within ImageVise swallows all exceptions and returns the error message
 within a machine-readable JSON payload. If that doesn't work for you, or you want to add error
 handling using some error tracking provider, either subclass `ImageVise::RenderEngine` or prepend
-a module into it that will intercept the errors. For example, [Sentry](https://sentry.io) has a neat
-property of picking up `rack.exception` from the Rack request env. Using the hooks in the render engine,
-you can add Sentry support by using the following module:
+a module into it that will intercept the errors. See error handling in `examples/` for more.
 
-```ruby
-module ImageViseSentrySupport
-  ImageVise::RenderEngine.prepend self
+## Using forked child processes for RMagick tasks
 
-  def setup_error_handling(rack_env)
-    @env = rack_env
-  end
+You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
+variable is set, ImageVise will fork a child process and perform the image processing task within that process,
+killing it afterwards and deallocating all the memory. This can be extremely efficient for dealing with potential
+memory bloat issues in ImageMagick/RMagick. However, loading images into RMagick may hang in a forked child. This
+will lead to the child being timeout-terminated, and no image is going to be rendered. This issue is known and
+also platform-dependent (it does not happen on OSX but does happen on Docker within Ubuntu Trusty for instance).
 
-  def handle_request_error(err)
-    @env['rack.exception'] = err
-  end
-
-  def handle_generic_error(err)
-    @env['rack.exception'] = err
-  end
-end
-```
-
-For [Appsignal](https://appsignal.com) you can use the following module instead:
-
-```ruby
-module ImageViseAppsignal
-  ImageVise::RenderEngine.prepend self
-  
-  def setup_error_handling(rack_env)
-    txn = Appsignal::Transaction.current
-    txn.set_action('%s#%s' % [self.class, 'call'])
-  end
-
-  def handle_request_error(err)
-    Appsignal.add_exception(err)
-  end
-
-  def handle_generic_error(err)
-    Appsignal.add_exception(err)
-  end
-end
-```
-
-In both cases you need the overall Rack error handling middleware to be wrapping ImageVise, of course.
+So, this feature _does_ exist but your mileage may vary with regards to it's use.
 
 ## State
 
