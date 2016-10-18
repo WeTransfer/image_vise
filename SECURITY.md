@@ -24,7 +24,7 @@ but gets copied into a tempfile first.
 ## ImageMagick memory constraints
 
 ImageVise does not set RMagick limits by itself. You should
-[set them according to the RMagick documentation}(https://rmagick.github.io/magick.html#limit_resource).
+[set them according to the RMagick documentation.](https://rmagick.github.io/magick.html#limit_resource)
 
 ## Processing time constraints
 
