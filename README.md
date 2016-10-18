@@ -129,30 +129,6 @@ image = Magick::Image.read(my_image_path)[0]
 pipe.apply!(image)
 ```
 
-## Performance and memory
-
-ImageVise uses ImageMagick and RMagick. It _does not_ shell out to `convert` or `mogrify`, because shelling out
-is _expensive_ in terms of wall clock. It _does_ do it's best to deallocate (`#destroy!`) the image it works on,
-but it is not 100% bullet proof.
-
-Additionally, in contrast to `convert` and `mogrify` ImageVise supports _stackable_ operations, and these operations
-might be repeated with different parameters. Unfortunately, `convert` is _not_ Shake, so we cannot pass a DAG of
-image operators to it and just expect it to work. If we want to do processing of multiple steps that `convert` is
-unable to execute in one call, we have to do
-
-     [fork+exec read + convert + write] -> [fork+exec read + convert + write] + ...
-
-for each operator we want to apply in a consistent fashion. We cannot stuff all the operators into one `convert`
-command because the order the operators get applied within `convert` is not clear, whereas we need a reproducible
-deterministic order of operations (as set in the pipeline). A much better solution is - load the image into memory
-**once**, do all the transformations, save. Additionally, if you use things like OpenCL with ImageMagick, the overhead
-of loading the library and compiling the compute kernels will outweigh _any_ performance gains you might get when
-actually using them. If you are using a library it is a one-time cost, with very fast processing afterwards.
-
-Also note that image operators are not per definition Imagemagick-specific - it's completely possible to not only use
-a different library for processing them, but even to use a different image processing server complying to the
-same protocol (a signed JSON-encodded waybill of HTTP(S) source-URL + pipeline instructions).
-
 ## Using forked child processes for RMagick tasks
 
 You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
