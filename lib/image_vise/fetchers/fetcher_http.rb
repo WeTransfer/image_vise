@@ -12,7 +12,7 @@ class ImageVise::FetcherHTTP
     end
   end
   
-  def self.fetch_uri(uri)
+  def self.fetch_uri_to_tempfile(uri)
     tf = Tempfile.new 'imagevise-http-download'
     verify_uri_access!(uri)
     s = Patron::Session.new

@@ -67,9 +67,9 @@ describe ImageVise do
   describe 'methods dealing with fetchers' do
     it 'returns the fetchers for the default schemes' do
       http = ImageVise.fetcher_for('http')
-      expect(http).to respond_to(:fetch_uri)
+      expect(http).to respond_to(:fetch_uri_to_tempfile)
       file = ImageVise.fetcher_for('file')
-      expect(http).to respond_to(:fetch_uri)
+      expect(http).to respond_to(:fetch_uri_to_tempfile)
       
       expect {
         ImageVise.fetcher_for('undernet')

@@ -73,7 +73,8 @@ class ImageVise::RenderEngine
     etag = image_request.cache_etag
     
     # Download/copy the original into a Tempfile
-    source_file = ImageVise.fetcher_for(source_image_uri.scheme).fetch_uri(source_image_uri)
+    fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
+    source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
     
     # Make sure we do not try to process something...questionable
     source_file_type = detect_file_type(source_file)

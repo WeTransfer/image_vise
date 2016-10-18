@@ -2,7 +2,7 @@ class ImageVise::FetcherFile
   class AccessError < StandardError
     def http_status; 403; end
   end
-  def self.fetch_uri(uri)
+  def self.fetch_uri_to_tempfile(uri)
     tf = Tempfile.new 'imagevise-localfs-copy'
     real_path_on_filesystem = File.expand_path(URI.decode(uri.path))
     verify_filesystem_access! real_path_on_filesystem
