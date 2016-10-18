@@ -52,8 +52,7 @@ class ImageVise::RenderEngine
   
   def handle_request(env)
     setup_error_handling(env)
-    render_destination_file = binary_tempfile
-    
+
     # Assume that if _any_ ETag is given the image is being requested anew as a refetch,
     # and the client already has it. Just respond with a 304.
     return [304, DEFAULT_HEADERS.dup, []] if env['HTTP_IF_NONE_MATCH']
@@ -64,37 +63,7 @@ class ImageVise::RenderEngine
     # Parse and reinstate the URL and pipeline
     image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, secrets: ImageVise.secret_keys)
 
-    # Recover the source image URL and the pipeline instructions (all the image ops)
-    source_image_uri, pipeline = image_request.src_url, image_request.pipeline
-    raise 'Image pipeline has no operators' if pipeline.empty?
-
-    # Compute an ETag which describes this image transform + image source location.
-    # Assume the image URL contents does _never_ change.
-    etag = image_request.cache_etag
-    
-    # Download/copy the original into a Tempfile
-    fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
-    source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
-    
-    # Make sure we do not try to process something...questionable
-    source_file_type = detect_file_type(source_file)
-    unless source_file_type_permitted?(source_file_type)
-      raise UnsupportedInputFormat.new("Unsupported/unknown input file format .%s" % source_file_type.ext)
-    end
-    
-    # Perform the processing
-    if enable_forking?
-      require 'exceptional_fork'
-      ExceptionalFork.fork_and_wait { apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path) }
-    else
-      apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
-    end
-    
-    # Catch this one early
-    raise EmptyRender, "The rendered image was empty" if render_destination_file.size.zero?
-
-    render_destination_file.rewind
-    render_file_type = detect_file_type(render_destination_file)
+    render_destination_file, render_file_type, etag = process_image_request(image_request) 
 
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
@@ -118,6 +87,44 @@ class ImageVise::RenderEngine
       handle_generic_error(e)
       raise_exception_or_error_response(e, 500)
     end
+  end
+
+  def process_image_request(image_request)
+    # Recover the source image URL and the pipeline instructions (all the image ops)
+    source_image_uri, pipeline = image_request.src_url, image_request.pipeline
+    raise 'Image pipeline has no operators' if pipeline.empty?
+
+    # Compute an ETag which describes this image transform + image source location.
+    # Assume the image URL contents does _never_ change.
+    etag = image_request.cache_etag
+    
+    # Download/copy the original into a Tempfile
+    fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
+    source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
+    
+    # Make sure we do not try to process something...questionable
+    source_file_type = detect_file_type(source_file)
+    unless source_file_type_permitted?(source_file_type)
+      raise UnsupportedInputFormat.new("Unsupported/unknown input file format .%s" % source_file_type.ext)
+    end
+
+    render_destination_file = binary_tempfile
+
+    # Perform the processing
+    if enable_forking?
+      require 'exceptional_fork'
+      ExceptionalFork.fork_and_wait { apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path) }
+    else
+      apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
+    end
+    
+    render_destination_file.rewind
+
+    # Catch this one early
+    raise EmptyRender, "The rendered image was empty" if render_destination_file.size.zero?
+
+    render_file_type = detect_file_type(render_destination_file)
+    [render_destination_file, render_file_type, etag]
   ensure
     ImageVise.close_and_unlink(source_file)
   end
