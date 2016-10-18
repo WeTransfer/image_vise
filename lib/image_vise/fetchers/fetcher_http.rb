@@ -1,5 +1,4 @@
 class ImageVise::FetcherHTTP
-  PASSTHROUGH_STATUS_CODES = [404, 403, 503, 504, 500]
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 5
 
   class AccessError < StandardError; end
@@ -22,7 +21,7 @@ class ImageVise::FetcherHTTP
     
     response = s.get_file(uri.to_s, tf.path)
     
-    if PASSTHROUGH_STATUS_CODES.include?(response.status)
+    if response.status != 200
       ImageVise.close_and_unlink(tf)
       raise UpstreamError.new(response.status, "Unfortunate upstream response #{response.status}")
     end
