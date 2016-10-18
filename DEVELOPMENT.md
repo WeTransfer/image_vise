@@ -56,3 +56,19 @@ it:
     ImageVise.register_fetcher 'profilepictures', self
 
 Once done, you can use URLs like `profilepictures:/5674`
+
+## Overriding the render engine
+
+By default, `ImageVise.call` delegates to `ImageVise::RenderEngine.new.call`. You can mount your own subclass
+instead, and it will handle everything the same way:
+
+    class MyThumbnailer < ImageVise::RenderEngine
+      ...
+    end
+    
+    map '/thumbs' do
+      run MyThumbnailer.new
+    end
+
+Note that since the API is in flux the methods you can override in `RenderEngine` can change.
+So far none of them are private.
