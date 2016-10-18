@@ -72,7 +72,7 @@ describe ImageVise::RenderEngine do
       params = image_request.to_query_string_params('l33tness')
 
       get '/', params
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
       expect(last_response.body).to include('filesystem access is disabled')
     end
     
@@ -90,7 +90,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(403)
       expect(last_response.headers['Content-Type']).to eq('application/json')
       parsed = JSON.load(last_response.body)
-      expect(parsed['errors']).to include("Unfortunate upstream response: 403")
+      expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
     end
     
     it 'replays upstream error response codes that are selected to be replayed to the requester' do
@@ -112,7 +112,7 @@ describe ImageVise::RenderEngine do
         
         expect(last_response.headers['Content-Type']).to eq('application/json')
         parsed = JSON.load(last_response.body)
-        expect(parsed['errors']).to include("Unfortunate upstream response: #{error_code}")
+        expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
       end
     end
     

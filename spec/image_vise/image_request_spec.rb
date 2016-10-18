@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ImageVise::ImageRequest do
-  it 'accepts a set of params, secrets and permitted hosts and returns a Pipeline' do
+  it 'accepts a set of params and secrets, and returns a Pipeline' do
     img_params = {src_url: 'http://bucket.s3.aws.com/image.jpg', pipeline: [[:crop, {width: 10, height: 10, gravity: 's'}]]}
     img_params_json = JSON.dump(img_params)
     signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', img_params_json)
@@ -10,31 +10,14 @@ describe ImageVise::ImageRequest do
       sig: signature
     }
 
-    image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-      permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
+    image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'])
     request_qs_params = image_request.to_query_string_params('this is a secret')
     expect(request_qs_params).to be_kind_of(Hash)
 
-    image_request_roundtrip = described_class.to_request(qs_params: request_qs_params,
-      secrets: ['this is a secret'], permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
+    image_request_roundtrip = described_class.to_request(qs_params: request_qs_params, secrets: ['this is a secret'])
   end
 
-  it 'forbids a file:// URL if the flag is not enabled' do
-    img_params = {src_url: 'file:///etc/passwd', pipeline: [[:auto_orient]]}
-    img_params_json = JSON.dump(img_params)
-    signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', img_params_json)
-    params = {
-      q: Base64.encode64(img_params_json),
-      sig: signature
-    }
-    
-    expect {
-      described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-        permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
-    }.to raise_error(/filesystem access is disabled/)
-  end
-
-  it 'allows a file:// URL if its path is within the permit list' do
+  it 'converts a file:// URL into a URI objectlist' do
     img_params = {src_url: 'file:///etc/passwd', pipeline: [[:auto_orient, {}]]}
     img_params_json = JSON.dump(img_params)
     signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', img_params_json)
@@ -42,11 +25,8 @@ describe ImageVise::ImageRequest do
       q: Base64.encode64(img_params_json),
       sig: signature
     }
-    
-    image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'],
-      permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: %w( /etc/* ))
-    request_qs_params = image_request.to_query_string_params('this is a secret')
-    expect(request_qs_params).to be_kind_of(Hash)
+    image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'])
+    expect(image_request.src_url).to be_kind_of(URI)
   end
 
   describe 'fails with an invalid pipeline' do
@@ -59,8 +39,6 @@ describe ImageVise::ImageRequest do
   describe 'fails with an invalid URL' do
     it 'when the URL param is missing'
     it 'when the URL param is empty'
-    it 'when the URL is referencing a non-permitted host'
-    it 'when the URL refers to a non-HTTP(S) scheme'
   end
 
   describe 'fails with an invalid signature' do
@@ -77,8 +55,7 @@ describe ImageVise::ImageRequest do
       }
       
       expect {
-        described_class.to_request(qs_params: params,
-          secrets: ['b'], permitted_source_hosts: ['bucket.s3.aws.com'], allowed_filesystem_patterns: [])
+        described_class.to_request(qs_params: params, secrets: ['b'])
       }.to raise_error(/Invalid or missing signature/)
     end
   end

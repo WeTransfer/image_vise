@@ -16,7 +16,8 @@ class ImageVise
   @keys = Set.new
   @operators = {}
   @allowed_glob_patterns = Set.new
-
+  @fetchers = {}
+  
   class << self
     # Resets all allowed hosts
     def reset_allowed_hosts!
@@ -80,7 +81,7 @@ class ImageVise
       p = Pipeline.new
       yield(p)
       raise ArgumentError, "Image pipeline has no steps defined" if p.empty?
-      ImageRequest.new(src_url: src_url, pipeline: p).to_query_string_params(secret)
+      ImageRequest.new(src_url: URI(src_url), pipeline: p).to_query_string_params(secret)
     end
 
     # Adds an operator
@@ -97,8 +98,18 @@ class ImageVise
       @operators.keys
     end
     
+    def register_fetcher(scheme, fetcher)
+      S_MUTEX.synchronize { @fetchers[scheme.to_s] = fetcher }
+    end
+    
+    def fetcher_for(scheme)
+      S_MUTEX.synchronize { @fetchers[scheme.to_s] or raise "No fetcher registered for #{scheme}" }
+    end
+    
     def operator_name_for(operator)
-      @operators.key(operator.class) or raise "Operator #{operator.inspect} not registered using ImageVise.add_operator"
+      S_MUTEX.synchronize do
+        @operators.key(operator.class) or raise "Operator #{operator.inspect} not registered using ImageVise.add_operator"
+      end
     end
   end
   
@@ -130,6 +141,15 @@ class ImageVise
     return unless maybe_image.respond_to?(:destroy!)
     return if maybe_image.destroyed?
     maybe_image.destroy!
+  end
+
+  # Used as a shorthand to force-dealloc Tempfiles in an ensure() blocks. Since
+  # ensure blocks sometimes deal with variables in inconsistent states (variable
+  # in scope but not yet set to an image) we take the possibility of nils into account.
+  def self.close_and_unlink(maybe_tempfile)
+    return unless maybe_tempfile
+    maybe_tempfile.close unless maybe_tempfile.closed?
+    maybe_tempfile.unlink
   end
 end
 

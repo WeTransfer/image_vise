@@ -6,7 +6,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   
   # Initializes a new ParamsChecker from given HTTP server framework
   # params. The params can be symbol- or string-keyed, does not matter.
-  def self.to_request(qs_params:, secrets:, permitted_source_hosts:, allowed_filesystem_patterns:)
+  def self.to_request(qs_params:, secrets:)
     base64_encoded_params = qs_params.fetch(:q) rescue qs_params.fetch('q')
     given_signature = qs_params.fetch(:sig) rescue qs_params.fetch('sig')
     
@@ -20,22 +20,10 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     params = JSON.parse(decoded_json, symbolize_names: true)
 
     # Pick up the URL and validate it
-    src_url = params.fetch(:src_url).to_s
-    raise URLError, "the :src_url parameter must be non-empty" if src_url.empty?
-
-    src_url = URI.parse(src_url)
-    if src_url.scheme == 'file'
-      file_path = URI.decode(src_url.path)
-      raise URLError, "#{src_url} not permitted since filesystem access is disabled" if allowed_filesystem_patterns.empty?
-      raise URLError, "#{src_url} is not on the path whitelist" unless allowed_path?(allowed_filesystem_patterns, file_path)
-    elsif src_url.scheme != 'file'
-      raise URLError, "#{src_url} is not permitted as source" unless permitted_source_hosts.include?(src_url.host)
-    end
-    
-    # Build out the processing pipeline
+    source_url_str = params.fetch(:src_url).to_s
+    raise URLError, "the :src_url parameter must be non-empty" if source_url_str.empty?
     pipeline_definition = params.fetch(:pipeline)
-
-    new(src_url: src_url.to_s, pipeline: ImageVise::Pipeline.from_param(pipeline_definition))
+    new(src_url: URI(source_url_str), pipeline: ImageVise::Pipeline.from_param(pipeline_definition))
   rescue KeyError => e
     raise InvalidRequest.new(e.message)
   end
@@ -46,7 +34,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   end
 
   def to_h
-    {pipeline: pipeline.to_params, src_url: src_url}
+    {pipeline: pipeline.to_params, src_url: src_url.to_s}
   end
   
   def cache_etag
@@ -54,13 +42,6 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   end
 
   private
-
-  def self.allowed_path?(filesystem_glob_patterns, path_to_check)
-    # Note that we do NOT do File.realpath here, because File.fnmatch
-    # resolves links by itself (which is mighy convenient)
-    expanded_path = File.expand_path(path_to_check)
-    filesystem_glob_patterns.any? {|pattern| File.fnmatch?(pattern, expanded_path) }
-  end
 
   def self.valid_signature?(for_payload, given_signature, secrets)
     # Check the signature against every key that we have,

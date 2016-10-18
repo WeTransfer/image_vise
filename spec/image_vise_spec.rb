@@ -63,7 +63,20 @@ describe ImageVise do
       expect(params[:sig]).not_to be_empty
     end
   end
-  
+
+  describe 'methods dealing with fetchers' do
+    it 'returns the fetchers for the default schemes' do
+      http = ImageVise.fetcher_for('http')
+      expect(http).to respond_to(:fetch_uri)
+      file = ImageVise.fetcher_for('file')
+      expect(http).to respond_to(:fetch_uri)
+      
+      expect {
+        ImageVise.fetcher_for('undernet')
+      }.to raise_error(/No fetcher registered/)
+    end
+  end
+
   describe 'methods dealing with the operator list' do
     it 'have the basic operators already set up' do
       oplist = ImageVise.defined_operator_names

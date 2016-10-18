@@ -2,9 +2,6 @@ class ImageVise::RenderEngine
   class UnsupportedInputFormat < StandardError; end
   class EmptyRender < StandardError; end
 
-  # Codes that have to be sent through to the requester
-  PASSTHROUGH_STATUS_CODES = [404, 403, 503, 504, 500]
-  
   DEFAULT_HEADERS = {
     'Allow' => "GET"
   }.freeze
@@ -38,20 +35,7 @@ class ImageVise::RenderEngine
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
   
   # The default file type for images with alpha
-  PNG_FILE_TYPE = Class.new do
-    def self.mime; 'image/png'; end
-    def self.ext; 'png'; end
-  end
-  
-  # Fetch the given URL into a Tempfile and return the File object
-  def fetch_url_into_tempfile(source_image_uri)
-    parsed = URI.parse(source_image_uri)
-    if parsed.scheme == 'file'
-      copy_path_into_tempfile(URI.decode(parsed.path))
-    else
-      fetch_url(source_image_uri)
-    end
-  end
+  PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
   
   def bail(status, *errors_array)
     h = JSON_ERROR_HEADERS.dup # Needed because some upstream middleware migh be modifying headers
@@ -77,8 +61,8 @@ class ImageVise::RenderEngine
     req = Rack::Request.new(env)
     bail(405, 'Only GET supported') unless req.get?
 
-    # Validate the inputs
-    image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, **image_request_options)
+    # Parse and reinstate the URL and pipeline
+    image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, secrets: ImageVise.secret_keys)
 
     # Recover the source image URL and the pipeline instructions (all the image ops)
     source_image_uri, pipeline = image_request.src_url, image_request.pipeline
@@ -88,8 +72,8 @@ class ImageVise::RenderEngine
     # Assume the image URL contents does _never_ change.
     etag = image_request.cache_etag
     
-    # Download the original into a Tempfile
-    source_file = fetch_url_into_tempfile(source_image_uri)
+    # Download/copy the original into a Tempfile
+    source_file = ImageVise.fetcher_for(source_image_uri.scheme).fetch_uri(source_image_uri)
     
     # Make sure we do not try to process something...questionable
     source_file_type = detect_file_type(source_file)
@@ -123,12 +107,18 @@ class ImageVise::RenderEngine
     [200, response_headers, ImageVise::FileResponse.new(render_destination_file)]
   rescue *permanent_failures => e
     handle_request_error(e)
-    raise_exception_or_error_response(e, 422)
+    http_status_code = e.respond_to?(:http_status) ? e.http_status : 422
+    raise_exception_or_error_response(e, http_status_code)
   rescue Exception => e
-    handle_generic_error(e)
-    raise_exception_or_error_response(e, 500)
+    if http_status_code = (e.respond_to?(:http_status) && e.http_status)
+      handle_request_error(e)
+      raise_exception_or_error_response(e, http_status_code)
+    else
+      handle_generic_error(e)
+      raise_exception_or_error_response(e, 500)
+    end
   ensure
-    close_and_unlink(source_file)
+    ImageVise.close_and_unlink(source_file)
   end
   
   def raise_exception_or_error_response(exception, status_code)
@@ -137,12 +127,6 @@ class ImageVise::RenderEngine
     else
       bail status_code, exception.message
     end
-  end
-  
-  def close_and_unlink(f)
-    return unless f
-    f.close unless f.closed?
-    f.unlink
   end
   
   def binary_tempfile
@@ -213,46 +197,6 @@ class ImageVise::RenderEngine
     magick_image.write(render_to_path)
   ensure
     ImageVise.destroy(magick_image)
-  end
-
-  def image_request_options
-    {
-      secrets: ImageVise.secret_keys,
-      permitted_source_hosts: ImageVise.allowed_hosts,
-      allowed_filesystem_patterns: ImageVise.allowed_filesystem_sources,
-    }
-  end
-
-  def fetch_url(source_image_uri)
-    tf = binary_tempfile
-    s = Patron::Session.new
-    s.automatic_content_encoding = true
-    s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    s.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    response = s.get_file(source_image_uri, tf.path)
-    if PASSTHROUGH_STATUS_CODES.include?(response.status)
-      tf.close; tf.unlink;
-      bail response.status, "Unfortunate upstream response: #{response.status}" 
-    end
-    tf
-  rescue Exception => e
-    tf.close; tf.unlink;
-    raise e
-  end
-
-  def copy_path_into_tempfile(path_on_filesystem)
-    tf = binary_tempfile
-    real_path_on_filesystem = File.expand_path(path_on_filesystem)
-    File.open(real_path_on_filesystem, 'rb') do |f|
-      IO.copy_stream(f, tf)
-    end
-    tf.rewind; tf
-  rescue Errno::ENOENT
-    tf.close; tf.unlink;
-    bail 404, "Image file not found" 
-  rescue Exception => e
-    tf.close; tf.unlink;
-    raise e
   end
 
 end

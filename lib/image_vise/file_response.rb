@@ -17,7 +17,6 @@ class ImageVise::FileResponse
   end
   
   def close
-    @file.close
-    @file.unlink
+    ImageVise.close_and_unlink(@file)
   end
 end
