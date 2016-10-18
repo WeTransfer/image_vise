@@ -6,6 +6,7 @@ This lists out the implementation details of security-sensitive parts of ImageVi
 
 URLs are passed as Base64-encoded JSON. The JSON payload is signed using HMAC with SHA256. This should be
 sufficient to prevent too much probing. If this is a critical issue you need to put throttling in front of the application.
+For checking HMAC values `Rack::Utils.secure_compare` constant-time comparison is used.
 
 ## Protection for remote URLs from HTTP(s) origins
 
