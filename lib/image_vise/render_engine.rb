@@ -60,21 +60,9 @@ class ImageVise::RenderEngine
     req = Rack::Request.new(env)
     bail(405, 'Only GET supported') unless req.get?
 
-    # Parse and reinstate the URL and pipeline
     image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, secrets: ImageVise.secret_keys)
-
     render_destination_file, render_file_type, etag = process_image_request(image_request) 
-
-    response_headers = DEFAULT_HEADERS.merge({
-      'Content-Type' => render_file_type.mime,
-      'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => IMAGE_CACHE_CONTROL,
-      'ETag' => etag
-    })
-
-    # Wrap the body Tempfile with a self-closing response.
-    # Once the response is read in full, the tempfile is going to be closed and unlinked.
-    [200, response_headers, ImageVise::FileResponse.new(render_destination_file)]
+    image_rack_response(render_destination_file, render_file_type, etag)
   rescue *permanent_failures => e
     handle_request_error(e)
     http_status_code = e.respond_to?(:http_status) ? e.http_status : 422
@@ -128,7 +116,20 @@ class ImageVise::RenderEngine
   ensure
     ImageVise.close_and_unlink(source_file)
   end
-  
+
+  def image_rack_response(render_destination_file, render_file_type, etag)
+    response_headers = DEFAULT_HEADERS.merge({
+      'Content-Type' => render_file_type.mime,
+      'Content-Length' => '%d' % render_destination_file.size,
+      'Cache-Control' => IMAGE_CACHE_CONTROL,
+      'ETag' => etag
+    })
+
+    # Wrap the body Tempfile with a self-closing response.
+    # Once the response is read in full, the tempfile is going to be closed and unlinked.
+    [200, response_headers, ImageVise::FileResponse.new(render_destination_file)]
+  end
+
   def raise_exception_or_error_response(exception, status_code)
     if raise_exceptions? 
       raise exception
