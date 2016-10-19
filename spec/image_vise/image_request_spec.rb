@@ -4,11 +4,10 @@ describe ImageVise::ImageRequest do
   it 'accepts a set of params and secrets, and returns a Pipeline' do
     img_params = {src_url: 'http://bucket.s3.aws.com/image.jpg', pipeline: [[:crop, {width: 10, height: 10, gravity: 's'}]]}
     img_params_json = JSON.dump(img_params)
+    
+    q = Base64.encode64(img_params_json)
     signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', img_params_json)
-    params = {
-      q: Base64.encode64(img_params_json),
-      sig: signature
-    }
+    params = {q: q, sig: signature}
 
     image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'])
     request_qs_params = image_request.to_query_string_params('this is a secret')
@@ -27,6 +26,17 @@ describe ImageVise::ImageRequest do
     }
     image_request = described_class.to_request(qs_params: params, secrets: ['this is a secret'])
     expect(image_request.src_url).to be_kind_of(URI)
+  end
+
+
+  it 'never apppends "="-padding to the Base64-encoded "q"' do
+    parametrized = double(to_params: {foo: 'bar'})
+    (1..12).each do |num_chars_in_url|
+      uri = URI('http://ex.com/%s'  % ('i' * num_chars_in_url))
+      image_request = described_class.new(src_url: uri, pipeline: parametrized)
+      q = image_request.to_query_string_params('password').fetch(:q)
+      expect(q).not_to include('=')
+    end
   end
 
   describe 'fails with an invalid pipeline' do
