@@ -158,6 +158,25 @@ describe ImageVise::RenderEngine do
       expect(parsed_image.columns).to eq(10)
     end
 
+    it 'calls all of the internal methods during execution' do
+      uri = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      expect(app).to receive(:process_image_request).and_call_original
+      expect(app).to receive(:image_rack_response).and_call_original
+      expect(app).to receive(:source_file_type_permitted?).and_call_original
+      expect(app).to receive(:output_file_type_permitted?).and_call_original
+      expect(app).to receive(:enable_forking?).and_call_original
+
+      get '/', params
+      expect(last_response.status).to eq(200)
+    end
+    
     it 'picks the image from the filesystem if that is permitted' do
       uri = 'file://' + test_image_path
       ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')

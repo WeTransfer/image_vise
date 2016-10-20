@@ -274,4 +274,4 @@ class ImageVise::RenderEngine
     ImageVise.destroy(magick_image)
   end
 
-  nd
+end
