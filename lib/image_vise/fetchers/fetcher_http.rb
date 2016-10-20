@@ -22,7 +22,7 @@ class ImageVise::FetcherHTTP
     response = s.get_file(uri.to_s, tf.path)
     
     if response.status != 200
-      raise UpstreamError.new(response.status, "Unfortunate upstream response #{response.status}")
+      raise UpstreamError.new(response.status, "Unfortunate upstream response #{response.status} on #{uri}")
     end
     
     tf

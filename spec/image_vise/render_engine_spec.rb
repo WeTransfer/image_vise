@@ -76,7 +76,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.body).to include('filesystem access is disabled')
     end
     
-    it 'responds with 403 when upstream returns it' do
+    it 'responds with 403 when upstream returns it, and includes the URL in the error message' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
@@ -91,6 +91,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.headers['Content-Type']).to eq('application/json')
       parsed = JSON.load(last_response.body)
       expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
+      expect(parsed['errors'].to_s).to include(uri.to_s)
     end
     
     it 'replays upstream error response codes that are selected to be replayed to the requester' do
