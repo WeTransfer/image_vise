@@ -75,7 +75,7 @@ class ImageVise
     #
     # The query string elements can be then passed on to RenderEngine for validation and execution.
     #
-    # @yields {ImageVise::Pipeline}
+    # @yield {ImageVise::Pipeline}
     # @return [Hash]
     def image_params(src_url:, secret:)
       p = Pipeline.new

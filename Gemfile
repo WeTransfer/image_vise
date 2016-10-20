@@ -8,6 +8,7 @@ gem 'magic_bytes'
 
 group :development do
   gem 'bundler'
+  gem 'yard'
   gem 'simplecov'
   gem 'rack-cache'
   gem 'strenv'
