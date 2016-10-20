@@ -6,7 +6,8 @@ framework. The main uses are:
 * Image resizing on request
 * Applying image filters
 
-It is implemented as a Rack application that responds to any URL and accepts the following query string parameters:
+It is implemented as a Rack application that responds to any URL and accepts the following two _last_ path
+compnents, internally named `q` and `sig`:
 
 * `q` - Base64 encoded JSON object with `src_url` and `pipeline` properties
     (the source URL of the image and processing steps to apply)
@@ -14,7 +15,7 @@ It is implemented as a Rack application that responds to any URL and accepts the
 
 A request to `ImageVise` might look like this:
 
-    /?q=acbhGyfhyYErghff&sig=acfgheg123
+    /acbhGyfhyYErghff/acfgheg123
 
 The URL that gets generated is best composed with the included `ImageVise.image_params` method. This method will
 take care of encoding the source URL and the commands in the right way, as well as signing.
@@ -38,11 +39,11 @@ You might want to define a helper method for generating signed URLs as well, whi
 
 ```ruby
 def thumb_url(source_image_url)
-  qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipeline|
+  path = ImageVise.image_path(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipeline|
      # For example, you can also yield `pipeline` to the caller
     pipeline.fit_crop width: 128, height: 128, gravity: 'c'
   end
-  '/images?' + Rack::Utils.build_query(qs_params) # or use url_for...
+  '/images' + path
 end
 ```
 
@@ -65,13 +66,13 @@ You might want to define a helper method for generating signed URLs as well, whi
 
 ```ruby
 def thumb_url(source_image_url)
-  qs_params = ImageVise.image_params(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
+  path_param = ImageVise.image_path(src_url: source_image_url, secret: ENV.fetch('IMAGE_VISE_SECRET')) do |pipe|
     pipe.fit_crop width: 256, height: 256, gravity: 'c'
     pipe.sharpen sigma: 0.5, radius: 2
     pipe.ellipse_stencil
   end
   # Output a URL to the app
-  '/images?' + Rack::Utils.build_query(image_request)
+  '/images' + path
 end
 ```
 

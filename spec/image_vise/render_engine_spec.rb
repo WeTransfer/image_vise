@@ -21,10 +21,9 @@ describe ImageVise::RenderEngine do
       
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: 'http://unknown.com/image.jpg', pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
       expect(app).to receive(:handle_generic_error).and_call_original
       expect {
-        get '/', params
+        get image_request.to_path_params('l33tness')
       }.to raise_error(/No keys set/)
     end
   end
@@ -48,7 +47,6 @@ describe ImageVise::RenderEngine do
       
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
       
       expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
         File.open(path, 'wb') {|f| f << 'totally not an image' }
@@ -56,7 +54,7 @@ describe ImageVise::RenderEngine do
       }
       expect(app).to receive(:handle_request_error).and_call_original
       
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(422)
       expect(last_response['Cache-Control']).to eq("private, max-age=0, no-cache")
       expect(last_response.body).to include('Unsupported/unknown')
@@ -69,9 +67,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(403)
       expect(last_response.body).to include('filesystem access is disabled')
     end
@@ -84,9 +81,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(403)
       expect(last_response.headers['Content-Type']).to eq('application/json')
       parsed = JSON.load(last_response.body)
@@ -104,9 +100,9 @@ describe ImageVise::RenderEngine do
         
         p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
         image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-        params = image_request.to_query_string_params('l33tness')
         
-        get '/', params
+        get image_request.to_path_params('l33tness')
+
         expect(last_response.status).to eq(error_code)
         expect(last_response.headers).to have_key('Cache-Control')
         expect(last_response.headers['Cache-Control']).to eq("private, max-age=0, no-cache")
@@ -124,20 +120,20 @@ describe ImageVise::RenderEngine do
       
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
       
-      get '/', params
+      req_path = image_request.to_path_params('l33tness')
       
+      get req_path, {}
       expect(last_response).to be_ok
       expect(last_response['ETag']).not_to be_nil
       expect(last_response['Cache-Control']).to match(/public/)
       
-      get '/', params, {'HTTP_IF_NONE_MATCH' => last_response['ETag']}
+      get req_path, {}, {'HTTP_IF_NONE_MATCH' => last_response['ETag']}
       expect(last_response.status).to eq(304)
       
       # Should consider _any_ ETag a request to rerender something
       # that already exists in an upstream cache
-      get '/', params, {'HTTP_IF_NONE_MATCH' => SecureRandom.hex(4)}
+      get req_path, {}, {'HTTP_IF_NONE_MATCH' => SecureRandom.hex(4)}
       expect(last_response.status).to eq(304)
     end
     
@@ -148,9 +144,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
 
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
@@ -175,7 +170,7 @@ describe ImageVise::RenderEngine do
       expect(app).to receive(:output_file_type_permitted?).and_call_original
       expect(app).to receive(:enable_forking?).and_call_original
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
     end
     
@@ -186,9 +181,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
     end
@@ -205,9 +199,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       File.unlink(utf8_file_path)
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
@@ -218,10 +211,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      params[:extra] = '123'
-      get '/', params
+      get image_request.to_path_params('l33tness'), {'extra' => '123'}
 
       expect(last_response.status).to eq(400)
     end
@@ -233,9 +224,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220').ellipse_stencil
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
 
       expect(last_response.headers['Content-Type']).to eq('image/png')
@@ -251,9 +241,8 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220').ellipse_stencil
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(422)
       expect(last_response.body).to include('unknown input file format .psd')
     end
@@ -265,13 +254,12 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
       class << app
         def source_file_type_permitted?(type); true; end
       end
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/png')
     end
@@ -283,13 +271,12 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
       class << app
         def source_file_type_permitted?(type); true; end
       end
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/png')
     end
@@ -301,14 +288,14 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
+      
 
       class << app
         def source_file_type_permitted?(type); true; end
         def output_file_type_permitted?(type); true; end
       end
 
-      get '/', params
+      get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/tiff')
     end

@@ -29,6 +29,10 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     raise InvalidRequest.new(e.message)
   end
 
+  def to_path_params(signed_with_secret)
+    '/%{q}/%{sig}' % to_query_string_params(signed_with_secret)
+  end
+
   def to_query_string_params(signed_with_secret)
     payload = JSON.dump(to_h)
     base64_enc = Base64.strict_encode64(payload).gsub(/\=+$/, '')

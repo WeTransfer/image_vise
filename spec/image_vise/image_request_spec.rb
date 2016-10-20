@@ -26,6 +26,14 @@ describe ImageVise::ImageRequest do
     expect(image_request.src_url).to be_kind_of(URI)
   end
 
+  it 'composes path parameters' do
+    parametrized = double(to_params: {foo: 'bar'})
+    uri = URI('http://example.com/image.psd')
+    image_request = described_class.new(src_url: uri, pipeline: parametrized)
+    path = image_request.to_path_params('password')
+    expect(path).to start_with('/eyJwaXB')
+    expect(path).to end_with('f207b')
+  end
 
   it 'never apppends "="-padding to the Base64-encoded "q"' do
     parametrized = double(to_params: {foo: 'bar'})

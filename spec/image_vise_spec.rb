@@ -77,6 +77,15 @@ describe ImageVise do
     end
   end
 
+  describe '.image_path' do
+    it 'returns the path to the image within the application' do
+      path = ImageVise.image_path(src_url: 'file://tmp/img.jpg', secret: 'a') do |p|
+        p.ellipse_stencil
+      end
+      expect(path).to start_with('/')
+    end
+  end
+  
   describe 'methods dealing with the operator list' do
     it 'have the basic operators already set up' do
       oplist = ImageVise.defined_operator_names
