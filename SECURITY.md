@@ -8,6 +8,18 @@ URLs are passed as Base64-encoded JSON. The JSON payload is signed using HMAC wi
 sufficient to prevent too much probing. If this is a critical issue you need to put throttling in front of the application.
 For checking HMAC values `Rack::Utils.secure_compare` constant-time comparison is used.
 
+## Cache bypass protection for randomized query string params
+
+ImageVise forbids _any_ query string params except `sig` and `q`. This to prevent the same processing
+URL from being requested repeatedly with the same params but with a different query string param appended,
+like this:
+
+* `/thm?q=xYz&sig=abc&exploit=123`
+* `/thm?q=xYz&sig=abc&exploit=234`
+
+These URLs would in fact resolve to the same source image and pipeline, but would not be stored in an upstream
+CDN cache because the query string params contain extra data.
+
 ## Protection for remote URLs from HTTP(s) origins
 
 Only URLs referring to permitted hosts are going to be permitted for fetching. If there are no host added,
