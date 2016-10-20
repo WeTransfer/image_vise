@@ -67,7 +67,10 @@ class ImageVise::RenderEngine
 
     req = Rack::Request.new(env)
     bail(405, 'Only GET supported') unless req.get?
-
+    
+    # Prevent cache bypass DOS attacks by only permitting :sig and :q
+    bail(400, 'Too many params') if req.params.keys.length > 2
+    
     image_request = ImageVise::ImageRequest.to_request(qs_params: req.params, secrets: ImageVise.secret_keys)
     render_destination_file, render_file_type, etag = process_image_request(image_request) 
     image_rack_response(render_destination_file, render_file_type, etag)

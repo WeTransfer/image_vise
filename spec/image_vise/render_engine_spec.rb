@@ -211,6 +211,19 @@ describe ImageVise::RenderEngine do
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
     end
 
+    it 'forbids a request with an extra GET param' do
+      uri = 'file://' + URI.encode(test_image_path)
+
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      params = image_request.to_query_string_params('l33tness')
+
+      params[:extra] = '123'
+      get '/', params
+
+      expect(last_response.status).to eq(400)
+    end
+
     it 'returns the processed JPEG image as a PNG if it had to get an alpha channel during processing' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
