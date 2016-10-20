@@ -65,7 +65,7 @@ class ImageVise::RenderEngine
     # and the client already has it. Just respond with a 304.
     return [304, DEFAULT_HEADERS.dup, []] if env['HTTP_IF_NONE_MATCH']
 
-    req = Rack::Request.new(env)
+    req = parse_params(env)
     bail(405, 'Only GET supported') unless req.get?
     
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
@@ -86,6 +86,16 @@ class ImageVise::RenderEngine
       handle_generic_error(e)
       raise_exception_or_error_response(e, 500)
     end
+  end
+  
+  # Parses the Rack environment into a Rack::Reqest. The following methods
+  # are going to be called on it: `#get?` and `#params`. You can use this
+  # method to override path-to-parameter translation for example.
+  #
+  # @param rack_env[Hash] the Rack environment
+  # @return [#get?, #params] the Rack request or a compatible object
+  def parse_params(rack_env)
+    Rack::Request.new(rack_env)
   end
 
   # Processes the ImageRequest object created from the request parameters,
