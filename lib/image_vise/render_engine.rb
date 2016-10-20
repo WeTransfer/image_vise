@@ -65,7 +65,7 @@ class ImageVise::RenderEngine
     # and the client already has it. Just respond with a 304.
     return [304, DEFAULT_HEADERS.dup, []] if env['HTTP_IF_NONE_MATCH']
 
-    req = parse_params(env)
+    req = parse_env_into_request(env)
     bail(405, 'Only GET supported') unless req.get?
     
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
@@ -94,7 +94,7 @@ class ImageVise::RenderEngine
   #
   # @param rack_env[Hash] the Rack environment
   # @return [#get?, #params] the Rack request or a compatible object
-  def parse_params(rack_env)
+  def parse_env_into_request(rack_env)
     Rack::Request.new(rack_env)
   end
 

@@ -167,6 +167,7 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
       params = image_request.to_query_string_params('l33tness')
 
+      expect(app).to receive(:parse_env_into_request).and_call_original
       expect(app).to receive(:process_image_request).and_call_original
       expect(app).to receive(:image_rack_response).and_call_original
       expect(app).to receive(:source_file_type_permitted?).and_call_original
