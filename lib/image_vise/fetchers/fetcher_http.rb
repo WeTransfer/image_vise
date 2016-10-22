@@ -33,9 +33,8 @@ class ImageVise::FetcherHTTP
   
   def self.verify_uri_access!(uri)
     host = uri.host
-    unless ImageVise.allowed_hosts.include?(uri.host)
-      raise AccessError, "#{uri} is not permitted as source"
-    end
+    return if ImageVise.allowed_hosts.include?(uri.host)
+    raise AccessError, "#{uri} is not permitted as source"
   end
 
   ImageVise.register_fetcher 'http', self
