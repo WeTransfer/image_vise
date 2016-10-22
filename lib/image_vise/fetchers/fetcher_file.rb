@@ -20,7 +20,7 @@ class ImageVise::FetcherFile
     patterns = ImageVise.allowed_filesystem_sources
     matches = patterns.any? { |glob_pattern| File.fnmatch?(glob_pattern, path_on_filesystem) }
     raise AccessError, "filesystem access is disabled" unless patterns.any?
-    raise AccessError, "#{src_url} is not on the path whitelist" unless matches
+    raise AccessError, "#{path_on_filesystem} is not on the path whitelist" unless matches
   end
 
   ImageVise.register_fetcher 'file', self
