@@ -4,6 +4,10 @@ describe ImageVise::FetcherFile do
   it 'is a class (can be inherited from)' do
     expect(ImageVise::FetcherFile).to be_kind_of(Class)
   end
+
+  it 'is registered as a fetcher for file://' do
+    expect(ImageVise.fetcher_for('file')).to eq(ImageVise::FetcherFile)
+  end
   
   it 'returns a Tempfile containing this test suite' do
     path = File.expand_path(__FILE__)
