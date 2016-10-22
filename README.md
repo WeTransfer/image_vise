@@ -176,17 +176,6 @@ within a machine-readable JSON payload. If that doesn't work for you, or you wan
 handling using some error tracking provider, either subclass `ImageVise::RenderEngine` or prepend
 a module into it that will intercept the errors. See error handling in `examples/` for more.
 
-## Using forked child processes for RMagick tasks
-
-You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
-variable is set, ImageVise will fork a child process and perform the image processing task within that process,
-killing it afterwards and deallocating all the memory. This can be extremely efficient for dealing with potential
-memory bloat issues in ImageMagick/RMagick. However, loading images into RMagick may hang in a forked child. This
-will lead to the child being timeout-terminated, and no image is going to be rendered. This issue is known and
-also platform-dependent (it does not happen on OSX but does happen on Docker within Ubuntu Trusty for instance).
-
-So, this feature _does_ exist but your mileage may vary with regards to it's use.
-
 ## State
 
 Except for the HTTP cache no state is stored (`ImageVise` does not care whether you store
