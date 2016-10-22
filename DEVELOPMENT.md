@@ -55,7 +55,20 @@ it:
     
     ImageVise.register_fetcher 'profilepictures', self
 
-Once done, you can use URLs like `profilepictures:/5674`
+Once done, you can use URLs like `profilepictures:/5674`. A very simple Fetcher would just
+override the standard filesystem one (be mindful that the filesystem fetcher still checks
+path access using the glob whitelist)
+
+    class PicFetcher < ImageVise::FetcherFile
+      def self.fetch_uri_to_tempfile(uri_object)
+        # Convert an internal "pic://sites/uploads/abcdef.jpg" to a full path URL
+        partial_path = URI.decode(uri_object.path)
+        full_path = File.join(Mappe::ROOT, 'sites', partial_path)
+        full_path_uri = URI('file://' + URI.encode(full_path))
+        super(full_path_uri)
+      end
+      ImageVise.register_fetcher 'pic', self
+    end
 
 ## Overriding the render engine
 
