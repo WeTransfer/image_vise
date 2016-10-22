@@ -1,7 +1,7 @@
 # Wrappers a given Tempfile for a Rack response.
 # Will close _and_ unlink the Tempfile it contains.
 class ImageVise::FileResponse
-  ONE_CHUNK_BYTES = 1024 * 512
+  ONE_CHUNK_BYTES = 1024 * 1024 * 2
   def initialize(file)
     @file = file
   end
