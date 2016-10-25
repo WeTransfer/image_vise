@@ -10,12 +10,12 @@ For checking HMAC values `Rack::Utils.secure_compare` constant-time comparison i
 
 ## Cache bypass protection for randomized query string params
 
-ImageVise forbids _any_ query string params except `sig` and `q`. This to prevent the same processing
-URL from being requested repeatedly with the same params but with a different query string param appended,
-like this:
+ImageVise defaults to using paths. If you have a way to forbid query strings on the fronting CDN
+or proxy server we suggest you to do so, to prevent randomized URLs from filling up your cache
+and extreme amounts of processing from happening.
 
-* `/thm?q=xYz&sig=abc&exploit=123`
-* `/thm?q=xYz&sig=abc&exploit=234`
+* `/image/<pipeline>/<sig>?&random=123`
+* `/image/<pipeline>/<sig>?&random=456`
 
 These URLs would in fact resolve to the same source image and pipeline, but would not be stored in an upstream
 CDN cache because the query string params contain extra data.
