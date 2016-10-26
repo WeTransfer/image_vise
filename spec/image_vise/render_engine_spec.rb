@@ -264,6 +264,30 @@ describe ImageVise::RenderEngine do
       expect(last_response.headers['Content-Type']).to eq('image/png')
     end
     
+    it 'destroys all the loaded PSD layers' do
+      uri = Addressable::URI.parse(public_url_psd_multilayer)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      class << app
+        def source_file_type_permitted?(type); true; end
+        def raise_exceptions?; true; end
+      end
+
+      destroy_invocations = 0
+      allow_any_instance_of(Magick::Image).to receive(:destroy!) {
+        destroy_invocations += 1
+      }
+      
+      get image_request.to_path_params('l33tness')
+      
+      expect(last_response.status).to eq(200)
+      expect(destroy_invocations).to eq(5) # For each layer loaded into the ImageList
+    end
+    
     it 'outputs a converted TIFF file as a PNG' do
       uri = Addressable::URI.parse(public_url_tif)
       ImageVise.add_allowed_host!(uri.host)
