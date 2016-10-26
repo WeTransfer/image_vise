@@ -289,9 +289,14 @@ class ImageVise::RenderEngine
   # @return [void]
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
     render_file_type = source_file_type
-    magick_image = Magick::Image.read(source_file_path)[0]
-    pipeline.apply!(magick_image)
     
+    # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
+    image_list = Magick::Image.read(source_file_path)
+    magick_image = image_list.first
+
+    # Apply the pipeline
+    pipeline.apply!(magick_image)
+
     # If processing the image has created an alpha channel, use PNG always.
     # Otherwise, keep the original format for as far as the supported formats list goes.
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
@@ -300,7 +305,8 @@ class ImageVise::RenderEngine
     magick_image.format = render_file_type.ext
     magick_image.write(render_to_path)
   ensure
-    ImageVise.destroy(magick_image)
+    # destroy all the loaded images explicitly
+    (image_list || []).map {|img| ImageVise.destroy(img) }
   end
 
 end

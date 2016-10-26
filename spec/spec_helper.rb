@@ -84,6 +84,10 @@ RSpec.configure do | config |
     'http://localhost:9001/waterside_magic_hour.psd'
   end
 
+  def public_url_psd_multilayer
+    'http://localhost:9001/layers-with-blending.psd'
+  end
+
   def public_url_tif
     'http://localhost:9001/waterside_magic_hour_gray.tif'
   end
