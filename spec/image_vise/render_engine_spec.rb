@@ -277,15 +277,12 @@ describe ImageVise::RenderEngine do
         def raise_exceptions?; true; end
       end
 
-      destroy_invocations = 0
-      allow_any_instance_of(Magick::Image).to receive(:destroy!) {
-        destroy_invocations += 1
-      }
+      # For each layer loaded into the ImageList
+      expect(ImageVise).to receive(:destroy).and_call_original.exactly(5).times
       
       get image_request.to_path_params('l33tness')
       
       expect(last_response.status).to eq(200)
-      expect(destroy_invocations).to eq(5) # For each layer loaded into the ImageList
     end
     
     it 'outputs a converted TIFF file as a PNG' do
