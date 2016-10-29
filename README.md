@@ -47,6 +47,9 @@ def thumb_url(source_image_url)
 end
 ```
 
+To preserve your sanity, make the route to the ImageVise engine terminal and do _not_ perform rewrites
+on it in your webserver configuration - for instance, Base64 permits slashes.
+
 ## Using ImageVise within a Rack application
 
 Mount ImageVise under a script name in your `config.ru`:
