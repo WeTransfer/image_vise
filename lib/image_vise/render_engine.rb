@@ -105,6 +105,8 @@ class ImageVise::RenderEngine
     bail(400, 'Query strings are not supported') if rack_request.params.any?
     
     # Extract the tail (signature) and the front (the Base64-encoded request).
+    # Slashes within :q are masked by ImageRequest already, so we don't have
+    # to worry about them.
     *, q_from_path, sig_from_path = rack_request.path_info.split('/')
 
     # Raise if any of them are empty or blank
