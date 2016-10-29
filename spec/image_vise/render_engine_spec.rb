@@ -154,21 +154,24 @@ describe ImageVise::RenderEngine do
       expect(parsed_image.columns).to eq(10)
     end
 
-    it 'properly decodes the image request if its Base64 representation contains slashes' do
+    it 'properly decodes the image request if its Base64 representation contains masked slashes and plus characters' do
       ImageVise.add_secret_key!("this is fab")
-      request_path = '/eyJwaXBlbGluZSI6W1sic2hhcnBlbiIseyJyYWRpdXMiO' +
+      sig = '64759d9ea610d75d9138bfa3ea01595d343ca8994261ae06fca8e6490222f140'
+      q = 'eyJwaXBlbGluZSI6W1sic2hhcnBlbiIseyJyYWRpdXMiO' +
        'jAuNSwic2lnbWEiOjAuNX1dXSwic3JjX3VybCI6InNoYWRl' +
-       'cmljb246L0NQR1BfRmlyZWJhbGw/Yz1kOWM4ZTMzO'+
+       'cmljb246L0NQR1BfRmlyZWJhbGw-Yz1kOWM4ZTMzO'+
        'TZmNjMwYzM1MjM0MTYwMmM2YzJhYmQyZjAzNTcxMTF'+
-       'jIn0/64759d9ea610d75d9138bfa3ea01595d343ca8994261ae06fca8e6490222f140'
-
+       'jIn0'
+      params = {q: q, sig: sig}
+      req = ImageVise::ImageRequest.from_params(qs_params: params, secrets: ['this is fab'])
+      
       # We do a check based on the raised exception - the request will fail
       # at the fetcher lookup stage. That stage however takes place _after_ the
       # signature has been validated, which means that the slash within the
       # Base64 payload has been taken into account
       expect(app).to receive(:raise_exceptions?).and_return(true)
       expect {
-        get request_path
+        get req.to_path_params('this is fab')
       }.to raise_error(/No fetcher registered for shadericon/)
     end
 

@@ -10,6 +10,9 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     base64_encoded_params = qs_params.fetch(:q) rescue qs_params.fetch('q')
     given_signature = qs_params.fetch(:sig) rescue qs_params.fetch('sig')
 
+    # Unmask slashes and equals signs (if they are present)
+    base64_encoded_params = base64_encoded_params.tr('-', '/').tr('_', '+')
+
     # Check the signature before decoding JSON (since we will be creating symbols)
     unless valid_signature?(base64_encoded_params, given_signature, secrets)
       raise SignatureError, "Invalid or missing signature"
@@ -30,7 +33,9 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
   end
 
   def to_path_params(signed_with_secret)
-    '/%{q}/%{sig}' % to_query_string_params(signed_with_secret)
+    qs = to_query_string_params(signed_with_secret)
+    q_masked = qs.fetch(:q).tr('/', '-').tr('+', '_')
+    '/%s/%s' % [q_masked, qs[:sig]]
   end
 
   def to_query_string_params(signed_with_secret)

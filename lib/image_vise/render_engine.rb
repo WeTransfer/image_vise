@@ -105,10 +105,7 @@ class ImageVise::RenderEngine
     bail(400, 'Query strings are not supported') if rack_request.params.any?
     
     # Extract the tail (signature) and the front (the Base64-encoded request).
-    # The Base64-encoded string may contain slashes, that is why recovering one path component
-    # is not enough.
-    sig_from_path = rack_request.path_info[/\/([^\/]+)$/, 1]
-    q_from_path = rack_request.path_info[/\/?(.+)\/[^\/]+$/, 1]
+    *, q_from_path, sig_from_path = rack_request.path_info.split('/')
 
     # Raise if any of them are empty or blank
     nothing_recovered = [q_from_path, sig_from_path].all?{|v| v.nil? || v.empty? }
