@@ -55,6 +55,11 @@ RSpec.configure do | config |
     TestServer.start(nil, ssl=false, port=9001)
   end
 
+  config.after :each do
+    ImageVise.reset_allowed_hosts!
+    ImageVise.reset_secret_keys!
+  end
+
   config.after :suite do
     sleep 2
     FileUtils.rm_rf(TEST_RENDERS_DIR)
