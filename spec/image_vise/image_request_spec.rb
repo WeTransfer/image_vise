@@ -46,8 +46,6 @@ describe ImageVise::ImageRequest do
   end
 
   describe 'fails with an invalid signature' do
-    it 'when the sig param is missing'
-    it 'when the sig param is empty'
     it 'when the sig is invalid' do
       img_params = {src_url: 'http://bucket.s3.aws.com/image.jpg',
           pipeline: [[:crop, {width: 10, height: 10, gravity: 's'}]]}
