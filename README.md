@@ -78,6 +78,11 @@ def thumb_url(source_image_url)
   '/images' + path
 end
 ```
+## Path decoding and SCRIPT_NAME
+
+`ImageVise::RenderEngine` _must_ be mounted under a `SCRIPT_NAME` (using either `mount` in Rails
+or using `map` in Rack). That is so since we may have more than 1 path component that we have to
+decode (when the Base64 payload contains slashes).
 
 ## Processing files on the local filesystem instead of remote ones
 
