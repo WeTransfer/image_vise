@@ -206,8 +206,6 @@ describe ImageVise::RenderEngine do
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
     end
 
-    it 'expands and forbids a path outside of the permitted sources'
-
     it 'URI-decodes the path in a file:// URL for a file with a Unicode path' do
       utf8_file_path = File.dirname(test_image_path) + '/картинка.jpg'
       FileUtils.cp_r(test_image_path, utf8_file_path)
