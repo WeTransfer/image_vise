@@ -137,7 +137,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(304)
     end
     
-    it 'when all goes well responds with an image that passes through all the processing steps' do
+    it 'responds with an image that passes through all the processing steps' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
@@ -154,6 +154,24 @@ describe ImageVise::RenderEngine do
       expect(parsed_image.columns).to eq(10)
     end
 
+    it 'properly decodes the image request if its Base64 representation contains slashes' do
+      ImageVise.add_secret_key!("this is fab")
+      request_path = '/eyJwaXBlbGluZSI6W1sic2hhcnBlbiIseyJyYWRpdXMiO' +
+       'jAuNSwic2lnbWEiOjAuNX1dXSwic3JjX3VybCI6InNoYWRl' +
+       'cmljb246L0NQR1BfRmlyZWJhbGw/Yz1kOWM4ZTMzO'+
+       'TZmNjMwYzM1MjM0MTYwMmM2YzJhYmQyZjAzNTcxMTF'+
+       'jIn0/64759d9ea610d75d9138bfa3ea01595d343ca8994261ae06fca8e6490222f140'
+
+      # We do a check based on the raised exception - the request will fail
+      # at the fetcher lookup stage. That stage however takes place _after_ the
+      # signature has been validated, which means that the slash within the
+      # Base64 payload has been taken into account
+      expect(app).to receive(:raise_exceptions?).and_return(true)
+      expect {
+        get request_path
+      }.to raise_error(/No fetcher registered for shadericon/)
+    end
+
     it 'calls all of the internal methods during execution' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
@@ -165,6 +183,7 @@ describe ImageVise::RenderEngine do
 
       expect(app).to receive(:parse_env_into_request).and_call_original
       expect(app).to receive(:process_image_request).and_call_original
+      expect(app).to receive(:extract_params_from_request).and_call_original
       expect(app).to receive(:image_rack_response).and_call_original
       expect(app).to receive(:source_file_type_permitted?).and_call_original
       expect(app).to receive(:output_file_type_permitted?).and_call_original

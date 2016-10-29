@@ -104,8 +104,11 @@ class ImageVise::RenderEngine
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
     bail(400, 'Query strings are not supported') if rack_request.params.any?
     
-    # Extract the last two path components
-    *, q_from_path, sig_from_path = rack_request.path_info.split('/')
+    # Extract the tail (signature) and the front (the Base64-encoded request).
+    # The Base64-encoded string may contain slashes, that is why recovering one path component
+    # is not enough.
+    sig_from_path = rack_request.path_info[/\/([^\/]+)$/, 1]
+    q_from_path = rack_request.path_info[/\/?(.+)\/[^\/]+$/, 1]
 
     # Raise if any of them are empty or blank
     nothing_recovered = [q_from_path, sig_from_path].all?{|v| v.nil? || v.empty? }
