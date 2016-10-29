@@ -9,9 +9,8 @@ describe ImageVise do
   end
   
   context 'ImageVise.allowed_hosts' do
-    xit 'returns the allowed hosts' do
-      expect(described_class.allowed_hosts).not_to be_empty
-      expect(described_class.allowed_hosts).to include('wetransfer-unittests.s3.amazonaws.com')
+    it 'returns the allowed hosts and is empty by default' do
+      expect(described_class.allowed_hosts).to be_empty
     end
     
     it 'allows add_allowed_host! and reset_allowed_hosts!' do
