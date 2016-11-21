@@ -39,7 +39,7 @@ describe ImageVise::RenderEngine do
       ImageVise.reset_secret_keys!
     end
     
-    it 'halts with 422 when the requested image cannot be opened by ImageMagick' do
+    it 'halts with 400 when the requested image cannot be opened by ImageMagick' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
@@ -55,12 +55,12 @@ describe ImageVise::RenderEngine do
       expect(app).to receive(:handle_request_error).and_call_original
       
       get image_request.to_path_params('l33tness')
-      expect(last_response.status).to eq(422)
-      expect(last_response['Cache-Control']).to eq("private, max-age=0, no-cache")
+      expect(last_response.status).to eq(400)
+      expect(last_response['Cache-Control']).to match(/public/)
       expect(last_response.body).to include('Unsupported/unknown')
     end
 
-    it 'halts with 422 when a file:// URL is given and filesystem access is not enabled' do
+    it 'halts with 400 when a file:// URL is given and filesystem access is not enabled' do
       uri = 'file://' + test_image_path
       ImageVise.deny_filesystem_sources!
       ImageVise.add_secret_key!('l33tness')
@@ -105,7 +105,7 @@ describe ImageVise::RenderEngine do
 
         expect(last_response.status).to eq(error_code)
         expect(last_response.headers).to have_key('Cache-Control')
-        expect(last_response.headers['Cache-Control']).to eq("private, max-age=0, no-cache")
+        expect(last_response.headers['Cache-Control']).to match(/public/)
         
         expect(last_response.headers['Content-Type']).to eq('application/json')
         parsed = JSON.load(last_response.body)
@@ -263,7 +263,7 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('l33tness')
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(400)
       expect(last_response.body).to include('unknown input file format .psd')
     end
 

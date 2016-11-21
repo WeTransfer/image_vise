@@ -6,10 +6,18 @@ class ImageVise::RenderEngine
     'Allow' => "GET"
   }.freeze
   
-  # To prevent some string allocations
-  JSON_ERROR_HEADERS = DEFAULT_HEADERS.merge({
+  # Headers for error responses that denote an invalid or
+  # an unsatisfiable request
+  JSON_ERROR_HEADERS_REQUEST = DEFAULT_HEADERS.merge({
     'Content-Type' => 'application/json',
-    'Cache-Control' => 'private, max-age=0, no-cache'
+    'Cache-Control' => 'public, max-age=600'
+  }).freeze
+
+  # Headers for error responses that denote
+  # an intermittent error (that permit retries)
+  JSON_ERROR_HEADERS_INTERMITTENT = DEFAULT_HEADERS.merge({
+    'Content-Type' => 'application/json',
+    'Cache-Control' => 'public, max-age=5'
   }).freeze
   
   # "public" of course. Add max-age so that there is _some_
@@ -38,8 +46,12 @@ class ImageVise::RenderEngine
   PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
   
   def bail(status, *errors_array)
-    h = JSON_ERROR_HEADERS.dup # Needed because some upstream middleware migh be modifying headers
-    response = [status.to_i, h, [JSON.pretty_generate({errors: errors_array})]]
+    headers = if (300...500).cover?(status)
+      JSON_ERROR_HEADERS_REQUEST.dup
+    else
+      JSON_ERROR_HEADERS_INTERMITTENT.dup
+    end
+    response = [status.to_i, headers, [JSON.pretty_generate({errors: errors_array})]]
     throw :__bail, response
   end
   
@@ -74,7 +86,7 @@ class ImageVise::RenderEngine
     image_rack_response(render_destination_file, render_file_type, etag)
   rescue *permanent_failures => e
     handle_request_error(e)
-    http_status_code = e.respond_to?(:http_status) ? e.http_status : 422
+    http_status_code = e.respond_to?(:http_status) ? e.http_status : 400
     raise_exception_or_error_response(e, http_status_code)
   rescue Exception => e
     if http_status_code = (e.respond_to?(:http_status) && e.http_status)
