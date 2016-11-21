@@ -254,7 +254,7 @@ describe ImageVise::RenderEngine do
       examine_image_from_string(last_response.body)
     end
 
-    it 'forbids a PSD file by default' do
+    it 'permits a PSD file by default' do
       uri = Addressable::URI.parse(public_url_psd)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
@@ -263,8 +263,7 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('l33tness')
-      expect(last_response.status).to eq(400)
-      expect(last_response.body).to include('unknown input file format .psd')
+      expect(last_response.status).to eq(200)
     end
 
     it 'permits a PSD file if it is permitted via a method override' do

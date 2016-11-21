@@ -33,7 +33,7 @@ class ImageVise::RenderEngine
   RENDER_TIMEOUT_SECONDS = 10
 
   # Which input files we permit (based on extensions stored in MagicBytes)
-  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg )
+  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg psd tif)
 
   # Which output files are permitted (regardless of the input format
   # the processed images will be converted to one of these types)
