@@ -265,23 +265,6 @@ describe ImageVise::RenderEngine do
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
     end
-
-    it 'permits a PSD file if it is permitted via a method override' do
-      uri = Addressable::URI.parse(public_url_psd)
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('l33tness')
-
-      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-
-      class << app
-        def source_file_type_permitted?(type); true; end
-      end
-
-      get image_request.to_path_params('l33tness')
-      expect(last_response.status).to eq(200)
-      expect(last_response.headers['Content-Type']).to eq('image/png')
-    end
     
     it 'destroys all the loaded PSD layers' do
       uri = Addressable::URI.parse(public_url_psd_multilayer)
@@ -292,7 +275,6 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       class << app
-        def source_file_type_permitted?(type); true; end
         def raise_exceptions?; true; end
       end
 
