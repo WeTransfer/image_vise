@@ -4,9 +4,18 @@ This lists out the implementation details of security-sensitive parts of ImageVi
 
 ## Protection of the URLs
 
-URLs are passed as Base64-encoded JSON. The JSON payload is signed using HMAC with SHA256. This should be
-sufficient to prevent too much probing. If this is a critical issue you need to put throttling in front of the application.
+URLs are passed as Base64-encoded JSON. The HMAC signature is computed over the Base-64 encoded string,
+so altering the string (with the intention to bust the cache) will invalidate the signature.
+
 For checking HMAC values `Rack::Utils.secure_compare` constant-time comparison is used.
+
+## Throttling still recommended
+
+Throttling between the caching CDN/proxy is recommended.
+
+## Cache bypass protection for fuzzed paths
+
+ImageVise accepts exactly 2 path components, and will return early if there are more
 
 ## Cache bypass protection for randomized query string params
 
@@ -22,7 +31,7 @@ CDN cache because the query string params contain extra data.
 
 ## Protection for remote URLs from HTTP(s) origins
 
-Only URLs referring to permitted hosts are going to be permitted for fetching. If there are no host added,
+Only URLs referring to permitted hosts are going to be permitted for fetching. If there are no hosts added,
 any remote URL is going to cause an exception. No special verification for whether the upstream must be HTTP
 or HTTPS is performed at this time.
 
@@ -32,6 +41,10 @@ The file URLs are going to be decoded, and the path component will be matched ag
 The matching takes links (hard and soft) into account, and uses Ruby's `File.fnmatch?` under the hood. The path
 is always expanded first using `File.expand_path`. The data is not read into ImageMagick from the original location,
 but gets copied into a tempfile first.
+
+The path in to the file gets encoded in the image processing request and may be examined by the user, that will
+disclose where the source image is stored on the server's filesystem. This might be an issue - if it is,
+a customised version with a custom URL scheme should be used for the source URL.
 
 ## ImageMagick memory constraints
 
