@@ -12,10 +12,19 @@ class ImageVise::EllipseStencil
   private_constant :C_black
 
   def apply!(magick_image)
-    # http://stackoverflow.com/a/13329959/153886
     width, height = magick_image.columns, magick_image.rows
     
-    # Generate a black and white image for the stencil
+    # This is a bit involved. We need to do a manual composite. Here is what it entails.
+    #
+    # Given a premultiplied RGB image B, and a grayscale mask A, we need to do the following
+    # operation:
+    #
+    #    BrBgBb / Ba * (Ba * A)
+    #
+    # Since ImageMagick works with unpremultiplied alphas, it is doable - but special care
+    # must be taken not to overmult or overdivide.
+    #
+    # To begin,generate a black and white image for the stencil
     circle_img = Magick::Image.new(width, height)
     draw_circle(circle_img, width, height)
     mask = circle_img.negate
@@ -32,6 +41,7 @@ class ImageVise::EllipseStencil
     # of the RGB channels as the alpha channel, so for some weird reason we need
     # to disable the alpha on our mask image
     mask.alpha(Magick::DeactivateAlphaChannel)
+    # And perform the operation (set gray(RGB) of mask as the A of magick_image)
     magick_image.composite!(mask, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
   ensure
     [mask, only_alpha, circle_img].each do |maybe_image|
