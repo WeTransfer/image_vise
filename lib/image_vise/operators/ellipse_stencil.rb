@@ -14,7 +14,7 @@ class ImageVise::EllipseStencil
   def apply!(magick_image)
     # http://stackoverflow.com/a/13329959/153886
     width, height = magick_image.columns, magick_image.rows
-    
+
     center_x = (width / 2.0)
     center_y = (height / 2.0)
     # Make sure all the edges are anti-aliased
@@ -24,20 +24,21 @@ class ImageVise::EllipseStencil
     gc = Magick::Draw.new
     gc.fill C_black
     gc.ellipse(center_x, center_y, radius_width, radius_height, deg_start=0, deg_end=360)
-    
+
     circle_img = Magick::Image.new(width, height)
     gc.draw(circle_img)
-    
+
     mask = circle_img.negate
     mask.matte = false
-    
+
     magick_image.matte = true
-    magick_image.composite!(mask, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
+    temp_image = mask.composite(magick_image, Magick::CenterGravity, Magick::DstInCompositeOp)
+    magick_image.composite!(temp_image, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
   ensure
-    [mask, gc, circle_img].each do |maybe_image|
+    [mask, temp_image, gc, circle_img].each do |maybe_image|
       ImageVise.destroy(maybe_image)
     end
   end
-  
+
   ImageVise.add_operator 'ellipse_stencil', self
 end
