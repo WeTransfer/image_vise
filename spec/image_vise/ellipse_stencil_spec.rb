@@ -7,8 +7,9 @@ describe ImageVise::EllipseStencil do
     stencil.apply!(image)
     examine_image(image, "circle-stencil")
   end
-  it 'applies the circle stencil for a png image with transparency' do
-    image = Magick::Image.read(test_image_path_png)[0]
+  it 'applies the circle stencil to a png with transparency' do
+    png_transparent_path = File.expand_path(__dir__ + '/../palm_fronds.png')
+    image = Magick::Image.read(png_transparent_path)[0]
     stencil = described_class.new
     stencil.apply!(image)
     examine_image(image, "circle-stencil-transparent-bg")

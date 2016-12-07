@@ -69,10 +69,6 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour.jpg')
   end
 
-  def test_image_path_png
-    File.expand_path(__dir__ + '/apple_ex.png')
-  end
-
   def test_image_path_psd
     File.expand_path(__dir__ + '/waterside_magic_hour.psd')
   end
