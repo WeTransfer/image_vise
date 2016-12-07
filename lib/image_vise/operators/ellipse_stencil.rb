@@ -17,16 +17,21 @@ class ImageVise::EllipseStencil
     
     # Generate a black and white image for the stencil
     circle_img = Magick::Image.new(width, height)
-    _draw(circle_img, width, height)
-    
+    draw_circle(circle_img, width, height)
     mask = circle_img.negate
-    mask.alpha(Magick::DeactivateAlphaChannel)
     
-    # Retain the alpha in a separate image
+    # At this stage the mask contains a B/W image of the circle, black outside, white inside.
+    # Retain the alpha of the original in a separate image
     only_alpha = magick_image.copy
+    only_alpha.alpha(Magick::ExtractAlphaChannel)
+    mask.composite!(only_alpha, Magick::CenterGravity, Magick::MultiplyCompositeOp)
     
     # With this composite op, enabling alpha on the destination image is
-    # not required - it will be enabled automatically
+    # not required - it will be enabled automatically.
+    # The CopyOpacityCompositeOp implies that we copy the grayscale version
+    # of the RGB channels as the alpha channel, so for some weird reason we need
+    # to disable the alpha on our mask image
+    mask.alpha(Magick::DeactivateAlphaChannel)
     magick_image.composite!(mask, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
   ensure
     [mask, only_alpha, circle_img].each do |maybe_image|
@@ -34,7 +39,7 @@ class ImageVise::EllipseStencil
     end
   end
   
-  def _draw(into_image, width, height)
+  def draw_circle(into_image, width, height)
     center_x = (width / 2.0)
     center_y = (height / 2.0)
     # Make sure all the edges are anti-aliased
