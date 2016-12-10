@@ -18,5 +18,7 @@ group :development do
   gem 'foreman'
   gem 'rspec', '~> 3.2', '< 3.3'
   gem 'rake', '~> 10'
-  gem "jeweler"
+  if RUBY_VERSION > '2.2.1'
+    gem "jeweler"
+  end
 end
