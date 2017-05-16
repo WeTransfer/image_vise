@@ -5,7 +5,7 @@ class ImageVise::RenderEngine
   DEFAULT_HEADERS = {
     'Allow' => "GET"
   }.freeze
-  
+
   # Headers for error responses that denote an invalid or
   # an unsatisfiable request
   JSON_ERROR_HEADERS_REQUEST = DEFAULT_HEADERS.merge({
@@ -19,7 +19,7 @@ class ImageVise::RenderEngine
     'Content-Type' => 'application/json',
     'Cache-Control' => 'public, max-age=5'
   }).freeze
-  
+
   # "public" of course. Add max-age so that there is _some_
   # revalidation after a time (otherwise some proxies treat it
   # as "must-revalidate" always), and "no-transform" so that
@@ -27,7 +27,7 @@ class ImageVise::RenderEngine
   # with Rack::Cache and leads Chrome to throw up on content
   # decoding for example).
   IMAGE_CACHE_CONTROL = 'public, no-transform, max-age=2592000'
-  
+
   # How long is a render (the ImageMagick/write part) is allowed to
   # take before we kill it
   RENDER_TIMEOUT_SECONDS = 10
@@ -41,10 +41,10 @@ class ImageVise::RenderEngine
 
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
-  
+
   # The default file type for images with alpha
   PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
-  
+
   def bail(status, *errors_array)
     headers = if (300...500).cover?(status)
       JSON_ERROR_HEADERS_REQUEST.dup
@@ -54,7 +54,7 @@ class ImageVise::RenderEngine
     response = [status.to_i, headers, [JSON.pretty_generate({errors: errors_array})]]
     throw :__bail, response
   end
-  
+
   # The main entry point for the Rack app. Wraps a call to {#handle_request} in a `catch{}` block
   # so that any method can abort the request by calling {#bail}
   #
@@ -63,7 +63,7 @@ class ImageVise::RenderEngine
   def call(env)
     catch(:__bail) { handle_request(env) }
   end
-  
+
   # Hadles the Rack request. If one of the steps calls {#bail} the `:__bail` symbol will be
   # thrown and the execution will abort. Any errors will cause either an error response in
   # JSON format or an Exception will be raised (depending on the return value of `raise_exceptions?`)
@@ -80,9 +80,9 @@ class ImageVise::RenderEngine
     req = parse_env_into_request(env)
     bail(405, 'Only GET supported') unless req.get?
     params = extract_params_from_request(req)
-    
+
     image_request = ImageVise::ImageRequest.from_params(qs_params: params, secrets: ImageVise.secret_keys)
-    render_destination_file, render_file_type, etag = process_image_request(image_request) 
+    render_destination_file, render_file_type, etag = process_image_request(image_request)
     image_rack_response(render_destination_file, render_file_type, etag)
   rescue *permanent_failures => e
     handle_request_error(e)
@@ -97,7 +97,7 @@ class ImageVise::RenderEngine
       raise_exception_or_error_response(e, 500)
     end
   end
-  
+
   # Parses the Rack environment into a Rack::Reqest. The following methods
   # are going to be called on it: `#get?` and `#params`. You can use this
   # method to override path-to-parameter translation for example.
@@ -115,7 +115,7 @@ class ImageVise::RenderEngine
   def extract_params_from_request(rack_request)
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
     bail(400, 'Query strings are not supported') if rack_request.params.any?
-    
+
     # Extract the tail (signature) and the front (the Base64-encoded request).
     # Slashes within :q are masked by ImageRequest already, so we don't have
     # to worry about them.
@@ -143,11 +143,11 @@ class ImageVise::RenderEngine
     # Compute an ETag which describes this image transform + image source location.
     # Assume the image URL contents does _never_ change.
     etag = image_request.cache_etag
-    
+
     # Download/copy the original into a Tempfile
     fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
     source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
-    
+
     # Make sure we do not try to process something...questionable
     source_file_type = detect_file_type(source_file)
     unless source_file_type_permitted?(source_file_type)
@@ -175,7 +175,7 @@ class ImageVise::RenderEngine
   ensure
     ImageVise.close_and_unlink(source_file)
   end
-  
+
   # Returns a Rack response triplet. Accepts the return value of
   # `process_image_request` unsplatted, and returns a triplet that
   # can be returned as a Rack response. The Rack response will contain
@@ -204,13 +204,13 @@ class ImageVise::RenderEngine
   # @param exception[Exception] the error that has to be captured
   # @param status_code[Fixnum] the HTTP status code
   def raise_exception_or_error_response(exception, status_code)
-    if raise_exceptions? 
+    if raise_exceptions?
       raise exception
     else
       bail status_code, exception.message
     end
   end
-  
+
   # Detects the file type of the given File and returns
   # a MagicBytes::FileType object that contains the extension and
   # the MIME type.
@@ -249,7 +249,7 @@ class ImageVise::RenderEngine
       ImageVise::ImageRequest::InvalidRequest
     ]
   end
-  
+
   # Is meant to be overridden by subclasses,
   # will be called at the start of each request to set up the error handling
   # library (Appsignal, Honeybadger, Sentry...)
@@ -278,7 +278,7 @@ class ImageVise::RenderEngine
   # @return [void]
   def handle_generic_error(exception)
   end
-  
+
   # Tells whether the engine must raise the exceptions further up the Rack stack,
   # or they should be suppressed and a JSON response must be returned.
   #
@@ -286,14 +286,14 @@ class ImageVise::RenderEngine
   def raise_exceptions?
     false
   end
-  
+
   # Tells whether image processing in a forked subproces should be turned on
   #
   # @return [Boolean]
   def enable_forking?
     ENV['IMAGE_VISE_ENABLE_FORK'] == 'yes'
   end
-  
+
   # Applies the given {ImageVise::Pipeline} to the image, and writes the render to
   # the given path.
   #
@@ -303,7 +303,7 @@ class ImageVise::RenderEngine
   # @return [void]
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
     render_file_type = source_file_type
-    
+
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = Magick::Image.read(source_file_path)
     magick_image = image_list.first
@@ -315,7 +315,7 @@ class ImageVise::RenderEngine
     # Otherwise, keep the original format for as far as the supported formats list goes.
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
-    
+
     magick_image.format = render_file_type.ext
     magick_image.write(render_to_path)
   ensure
