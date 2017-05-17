@@ -313,7 +313,8 @@ class ImageVise::RenderEngine
 
     # If processing the image has created an alpha channel, use PNG always.
     # Otherwise, keep the original format for as far as the supported formats list goes.
-    render_file_type = custom_file_type(magick_image) if magick_image['requested_filetype']
+    filetype = magick_image['render_as'] if magick_image['render_as'] && output_file_type_permitted?(magick_image['render_as'])
+    render_file_type = MagicBytes::FileType.new(filetype,"image/#{filetype}").freeze if filetype
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
 
@@ -322,12 +323,6 @@ class ImageVise::RenderEngine
   ensure
     # destroy all the loaded images explicitly
     (image_list || []).map {|img| ImageVise.destroy(img) }
-  end
-
-  # Applies a custom file type to the exported file
-  def custom_file_type(magick_image)
-    filetype = magick_image['requested_filetype']
-    MagicBytes::FileType.new(filetype,"image/#{filetype}").freeze
   end
 
 end

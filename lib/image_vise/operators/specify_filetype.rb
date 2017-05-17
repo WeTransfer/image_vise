@@ -5,11 +5,10 @@ class ImageVise::SpecifyFiletype < Ks.strict(:render_file_as)
   def initialize(*)
     super
     self.render_file_as = render_file_as.to_s
-    raise ArgumentError, "this is not a valid filetype" if !self.output_file_type_permitted?(render_file_as)
   end
 
   def apply!(image)
-    image['requested_filetype'] = render_file_as
+    image['render_as'] = render_file_as
   end
 
   ImageVise.add_operator 'specify_filetype', self
