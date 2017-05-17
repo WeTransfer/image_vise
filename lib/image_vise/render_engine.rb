@@ -45,6 +45,9 @@ class ImageVise::RenderEngine
   # The default file type for images with alpha
   PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
 
+  # The default file type for smaller converted images with alpha
+  JPG_FILE_TYPE = MagicBytes::FileType.new('jpg','image/jpg').freeze
+
   def bail(status, *errors_array)
     headers = if (300...500).cover?(status)
       JSON_ERROR_HEADERS_REQUEST.dup
