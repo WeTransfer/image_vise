@@ -9,7 +9,7 @@ class ImageVise::SpecifyFiletype < Ks.strict(:render_file_as)
   end
 
   def apply!(image)
-    image.add_profile(render_file_as)
+    image['requested_filetype'] = render_file_as
   end
 
   ImageVise.add_operator 'specify_filetype', self
