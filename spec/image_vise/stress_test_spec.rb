@@ -45,7 +45,7 @@ describe ImageVise::RenderEngine do
       get image_request.to_path_params('w00t')
       examine_image_from_string(last_response.body)
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.headers['Content-Length']).to eq("567321")
+      expect(last_response.headers['Content-Length']).to eq("267978")
       expect(last_response.status).to eq(200)
     end
 
