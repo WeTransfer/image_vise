@@ -5,7 +5,6 @@ gem 'rmagick', '~> 2.15', :require => 'rmagick'
 gem 'exceptional_fork', '~> 1.2'
 gem 'ks'
 gem 'magic_bytes'
-gem 'openssl'
 
 group :development do
   gem 'bundler'
