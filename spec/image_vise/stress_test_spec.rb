@@ -23,13 +23,13 @@ describe ImageVise::RenderEngine do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('1337ness')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').specify_filetype(render_file_as: 'jpg')
+      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').output_file_as_jpg
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('1337ness')
       examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/png')
-      expect(last_response.headers['Content-Length']).to eq("94323")
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+      expect(last_response.headers['Content-Length']).to eq("70559")
       expect(last_response.status).to eq(200)
     end
 
@@ -39,12 +39,12 @@ describe ImageVise::RenderEngine do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('w00t')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x2000').specify_filetype(render_file_as: 'jpg')
+      p = ImageVise::Pipeline.new.geom(geometry_string: 'x2000').output_file_as_jpg
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('w00t')
       examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/png')
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
       expect(last_response.headers['Content-Length']).to eq("567321")
       expect(last_response.status).to eq(200)
     end

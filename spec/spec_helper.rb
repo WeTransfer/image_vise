@@ -104,7 +104,7 @@ RSpec.configure do | config |
   def public_url_large_psd
     'http://localhost:9001/massive_pdf_test.psd'
   end
-  
+
   config.around :each do |e|
     STRICT_ENV.with_protected_env { e.run }
   end
