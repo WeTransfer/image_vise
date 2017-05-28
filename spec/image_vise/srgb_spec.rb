@@ -16,6 +16,7 @@ describe ImageVise::SRGB do
     # primaries, and will render diffrently in pretty much any
     # viewer).
     image = Magick::Image.read(test_image_adobergb_path).first
+
     opset.apply!(image)
     image.strip!
     examine_image(image, "from-adobergb")
@@ -62,10 +63,8 @@ describe ImageVise::SRGB do
     ])
     problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
     image = Magick::Image.read(problematic_image_path).first
-    examine_image(image, 'pre-processed-problematic')
-    image.strip!
+    examine_image(image, 'pre-processed')
     opset.apply!(image)
-    image.strip!
-    examine_image(image, "processed-problematic")
+    examine_image(image, "processed")
   end
 end
