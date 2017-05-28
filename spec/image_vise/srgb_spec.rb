@@ -25,4 +25,17 @@ describe ImageVise::SRGB do
     image.strip!
     examine_image(image, "from-srgb")
   end
+
+  it 'applies the profile for an image with an existing profile' do
+    opset = ImageVise::Pipeline.new([
+      ImageVise::SRGB.new,
+      described_class.new,
+    ])
+
+    problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
+    image = Magick::Image.read(problematic_image_path).first
+    opset.apply!(image)
+    image.strip!
+    examine_image(image, "problematic")
+  end
 end

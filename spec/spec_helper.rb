@@ -1,6 +1,6 @@
 require 'bundler'
 Bundler.require
-
+require 'pry'
 require 'addressable/uri'
 require 'strenv'
 require 'tmpdir'
@@ -17,14 +17,14 @@ module Examine
     # The first one is what Gitlab-CI sets for us.
     return if ENV.key?("CI_BUILD_ID")
     return if ENV.key?("SKIP_INTERACTIVE")
-    
+
     Dir.mkdir(TEST_RENDERS_DIR) unless File.exist?(TEST_RENDERS_DIR)
     path = File.join(TEST_RENDERS_DIR, name_tag + '.png')
     magick_image.format = 'png'
     magick_image.write(path)
     `open #{path}`
   end
-  
+
   def examine_image_from_string(string)
     # When doing TDD, waiting for stuff to open is a drag - allow
     # it to be squelched using 2 envvars. Also viewing images
@@ -32,7 +32,7 @@ module Examine
     # The first one is what Gitlab-CI sets for us.
     return if ENV.key?("CI_BUILD_ID")
     return if ENV.key?("SKIP_INTERACTIVE")
-    
+
     Dir.mkdir(TEST_RENDERS_DIR) unless File.exist?(TEST_RENDERS_DIR)
     random_name = 'test-image-%s' % SecureRandom.hex(3)
     path = File.join(TEST_RENDERS_DIR, random_name)
