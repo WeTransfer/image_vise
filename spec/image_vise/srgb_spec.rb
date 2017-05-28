@@ -26,6 +26,7 @@ describe ImageVise::SRGB do
     examine_image(image, "from-srgb")
   end
 
+<<<<<<< HEAD
   describe '#apply!' do
     let(:opset) { ImageVise::Pipeline.new([described_class.new,]) }
 
@@ -54,16 +55,17 @@ describe ImageVise::SRGB do
       opset.apply!(non_matching_adobergb_image)
     end
 
-  it 'applies the profile for an image with an existing profile' do
+  it 'applies the profile for an image with a corrupted profile' do
     opset = ImageVise::Pipeline.new([
       ImageVise::SRGB.new,
       described_class.new,
     ])
-
     problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
     image = Magick::Image.read(problematic_image_path).first
+    examine_image(image, 'pre-processed-problematic')
+    image.strip!
     opset.apply!(image)
     image.strip!
-    examine_image(image, "problematic")
+    examine_image(image, "processed-problematic")
   end
 end
