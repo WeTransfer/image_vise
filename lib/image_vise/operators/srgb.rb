@@ -24,7 +24,14 @@
 class ImageVise::SRGB
   PROFILE_PATH = File.expand_path(__dir__ + '/sRGB_v4_ICC_preference_displayclass.icc')
   def apply!(magick_image)
-    magick_image.add_profile(PROFILE_PATH)
+    begin
+      magick_image.add_profile(PROFILE_PATH)
+    rescue Magick::ImageMagickError => error
+      if error.message.include?('color profile operates on another colorspace icc')
+        image.delete_profile('icc')
+        apply!(image)
+      end
+    end
   end
   ImageVise.add_operator 'srgb', self
 end
