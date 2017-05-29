@@ -24,7 +24,20 @@
 class ImageVise::SRGB
   PROFILE_PATH = File.expand_path(__dir__ + '/sRGB_v4_ICC_preference_displayclass.icc')
   def apply!(magick_image)
+    magick_image = validate_color_profile(magick_image)
     magick_image.add_profile(PROFILE_PATH)
+  end
+
+  def validate_color_profile(magick_image)
+    valid_colorspaces_and_profiles = {
+      'sRGBColorspace' => 'RGB', 'CMYKColorspace' => 'CMYK', 'RGBColorspace' => 'RGB'
+    }
+    color_profile = magick_image.color_profile
+    colorspace = magick_image.colorspace.to_s
+    if !color_profile.include?(valid_colorspaces_and_profiles.fetch(colorspace))
+      magick_image.strip!
+    end
+    magick_image
   end
   ImageVise.add_operator 'srgb', self
 end
