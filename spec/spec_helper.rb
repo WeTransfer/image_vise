@@ -1,6 +1,5 @@
 require 'bundler'
 Bundler.require
-require 'pry'
 require 'addressable/uri'
 require 'strenv'
 require 'tmpdir'
