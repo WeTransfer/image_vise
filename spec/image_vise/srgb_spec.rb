@@ -31,10 +31,9 @@ describe ImageVise::SRGB do
       described_class.new,
     ])
     image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
-    examine_image(image, 'pre-processed')
+    examine_image(image, 'pre-mismatched-colors')
     opset.apply!(image)
-    image.strip!
-    examine_image(image, "processed")
+    examine_image(image, 'post-mismatched-colors')
   end
 
   describe '#validate_color_profile' do
