@@ -56,13 +56,35 @@ describe ImageVise::SRGB do
 
   it 'applies the profile for an image with a corrupted profile' do
     opset = ImageVise::Pipeline.new([
-      ImageVise::SRGB.new,
       described_class.new,
     ])
     problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
     image = Magick::Image.read(problematic_image_path).first
     examine_image(image, 'pre-processed')
     opset.apply!(image)
+    image.strip!
     examine_image(image, "processed")
+  end
+
+  describe '#validate_color_profile' do
+    let(:opset) { ImageVise::Pipeline.new([described_class.new,]) }
+
+    it 'strips the image\'s profile if the profile and colorspace are non-matching' do
+      non_matching_image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+      expect(non_matching_image).to receive(:strip!).and_call_original
+      opset.apply!(non_matching_image)
+    end
+
+    it 'does not strip the image\'s profile if the profile and colorspace are matching' do
+      matching_srgb_image = Magick::Image.read(test_image_path).first
+      expect(matching_srgb_image).to_not receive(:strip!)
+      opset.apply!(matching_srgb_image)
+    end
+
+    it 'does not strip the profile for an image with sRGB colorspace and AdobeRGB profile' do
+      non_matching_adobergb_image = Magick::Image.read(test_image_adobergb_path).first
+      expect(non_matching_adobergb_image).to_not receive(:strip!)
+      opset.apply!(non_matching_adobergb_image)
+    end
   end
 end
