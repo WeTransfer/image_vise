@@ -16,7 +16,6 @@ describe ImageVise::SRGB do
     # primaries, and will render diffrently in pretty much any
     # viewer).
     image = Magick::Image.read(test_image_adobergb_path).first
-
     opset.apply!(image)
     image.strip!
     examine_image(image, "from-adobergb")
@@ -27,14 +26,15 @@ describe ImageVise::SRGB do
     examine_image(image, "from-srgb")
   end
 
-  it 'applies the profile for an image with a corrupted profile' do
+  it 'applies the profile for an image with non-matching colorspace and profile' do
     opset = ImageVise::Pipeline.new([
       ImageVise::SRGB.new,
       described_class.new,
     ])
-
-    problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
-    image = Magick::Image.read(problematic_image_path).first
+    image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+    image1 = Magick::Image.read(test_image_path).first
+    image2 = Magick::Image.read(test_image_path_psd).first
+    image3 = Magick::Image.read(test_image_adobergb_path).first
     examine_image(image, 'pre-processed')
     opset.apply!(image)
     examine_image(image, "processed")
