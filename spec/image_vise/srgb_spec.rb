@@ -16,7 +16,6 @@ describe ImageVise::SRGB do
     # primaries, and will render diffrently in pretty much any
     # viewer).
     image = Magick::Image.read(test_image_adobergb_path).first
-
     opset.apply!(image)
     image.strip!
     examine_image(image, "from-adobergb")
@@ -27,7 +26,6 @@ describe ImageVise::SRGB do
     examine_image(image, "from-srgb")
   end
 
-<<<<<<< HEAD
   describe '#apply!' do
     let(:opset) { ImageVise::Pipeline.new([described_class.new,]) }
 
