@@ -58,12 +58,10 @@ describe ImageVise::SRGB do
     opset = ImageVise::Pipeline.new([
       described_class.new,
     ])
-    problematic_image_path = File.expand_path('/Users/courtney/open-source/image_vise/spec/problematic.jpg')
-    image = Magick::Image.read(problematic_image_path).first
-    examine_image(image, 'pre-processed')
+    image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+    examine_image(image, 'pre-mismatched-colors')
     opset.apply!(image)
-    image.strip!
-    examine_image(image, "processed")
+    examine_image(image, 'post-mismatched-colors')
   end
 
   describe '#validate_color_profile' do
