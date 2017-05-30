@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 describe ImageVise::FileResponse do
   it 'reads the file in binary mode, closes and unlinks the tempfile when close() is called' do
-    random_data = SecureRandom.random_bytes(1024 * 2048)
+    random_data = Random.new.bytes(1024 * 2048)
     f = Tempfile.new("experiment")
     f.binmode
     f << random_data
@@ -24,7 +24,7 @@ describe ImageVise::FileResponse do
   it 'only asks for the path of the tempfile and uses a separate file descriptor' do
     f = Tempfile.new("experiment")
     f.binmode
-    f << SecureRandom.random_bytes(2048)
+    f << Random.new.bytes(2048)
     f.flush
     
     # Use a double so that all the methods except the ones we mock raise an assertion
