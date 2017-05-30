@@ -8,7 +8,7 @@ require 'base64'
 require 'rack'
 
 class ImageVise
-  VERSION = '0.1.6'
+  require_relative 'image_vise/version'
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
   
