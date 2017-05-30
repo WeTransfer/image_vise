@@ -1,11 +1,12 @@
 require 'bundler'
 Bundler.require
 
+require 'tmpdir'
+require 'securerandom'
+
 require 'addressable/uri'
 require 'strenv'
-require 'tmpdir'
 require_relative 'test_server'
-
 
 TEST_RENDERS_DIR = Dir.mktmpdir
 
