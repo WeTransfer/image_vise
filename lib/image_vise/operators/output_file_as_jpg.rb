@@ -1,4 +1,5 @@
-# Changes the render file type to jpg for smaller sized previews
+# Changes the render file type to jpg for smaller sized previews.
+# Will also squash transparencies to support png to jpg conversions.
 #
 # The corresponding Pipeline method is `output_file_as_jpg`.
 class ImageVise::OutputFileAsJpg
