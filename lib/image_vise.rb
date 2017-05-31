@@ -6,7 +6,6 @@ require 'magic_bytes'
 require 'thread'
 require 'base64'
 require 'rack'
-require 'securerandom'
 
 class ImageVise
   require_relative 'image_vise/version'

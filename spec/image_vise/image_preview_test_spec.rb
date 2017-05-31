@@ -29,22 +29,22 @@ describe ImageVise::RenderEngine do
       get image_request.to_path_params('1337ness')
       examine_image_from_string(last_response.body)
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.headers['Content-Length']).to eq("70559")
+      expect(last_response.headers['Content-Length']).to be_between("60000","75000").inclusive
       expect(last_response.status).to eq(200)
     end
 
     it 'safely converts a png into a jpg' do
       uri = Addressable::URI.parse(public_url_png_transparency)
       ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('1337ness')
+      ImageVise.add_secret_key!('h00ray')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').output_file_as_jpg
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
-      get image_request.to_path_params('1337ness')
+      get image_request.to_path_params('h00ray')
       examine_image_from_string(last_response.body)
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.headers['Content-Length']).to eq("10421")
+      expect(last_response.headers['Content-Length']).to be_between("10000","11000").inclusive
       expect(last_response.status).to eq(200)
     end
 
