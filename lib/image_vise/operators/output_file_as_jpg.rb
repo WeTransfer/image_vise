@@ -3,6 +3,8 @@
 # The corresponding Pipeline method is `output_file_as_jpg`.
 class ImageVise::OutputFileAsJpg
   def apply!(image)
+    image.border!(0, 0, 'white')
+    image.alpha Magick::DeactivateAlphaChannel
     image['render_as'] = 'jpg'
   end
 

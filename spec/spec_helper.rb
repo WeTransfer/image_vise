@@ -81,8 +81,8 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour_adobergb.jpg')
   end
 
-  def test_very_large_psd
-    File.expand_path(__dir__ + '/massive_pdf_test.psd')
+  def test_image_png_transparency
+    File.expand_path(__dir__ + '/waterside_magic_hour_transp.png')
   end
 
   def public_url
@@ -101,8 +101,8 @@ RSpec.configure do | config |
     'http://localhost:9001/waterside_magic_hour_gray.tif'
   end
 
-  def public_url_large_psd
-    'http://localhost:9001/massive_pdf_test.psd'
+  def public_url_png_transparency
+    'http://localhost:9001/waterside_magic_hour_transp.png'
   end
 
   config.around :each do |e|
