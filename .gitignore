@@ -6,6 +6,3 @@ Gemfile.lock
 *.log
 pkg
 coverage
-
-# Ignore large PSD file
-/spec/massive_pdf_test.psd
