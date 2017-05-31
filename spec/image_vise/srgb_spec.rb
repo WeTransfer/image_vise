@@ -26,18 +26,15 @@ describe ImageVise::SRGB do
     examine_image(image, "from-srgb")
   end
 
-  it 'applies the profile for an image with non-matching colorspace and profile' do
-    opset = ImageVise::Pipeline.new([
-      described_class.new,
-    ])
-    image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
-    examine_image(image, 'pre-mismatched-colors')
-    opset.apply!(image)
-    examine_image(image, 'post-mismatched-colors')
-  end
-
-  describe '#validate_color_profile' do
+  describe '#apply!' do
     let(:opset) { ImageVise::Pipeline.new([described_class.new,]) }
+
+    it 'applies the profile for an image with non-matching colorspace and profile' do
+      image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+      examine_image(image, 'pre-mismatched-colors')
+      opset.apply!(image)
+      examine_image(image, 'post-mismatched-colors')
+    end
 
     it 'strips the image\'s profile if the profile and colorspace are non-matching' do
       non_matching_image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
