@@ -30,7 +30,6 @@ class ImageVise::SRGB
       magick_image.strip!
       magick_image.add_profile(PROFILE_PATH)
     end
-    magick_image
   end
   ImageVise.add_operator 'srgb', self
 end
