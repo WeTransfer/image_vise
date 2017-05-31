@@ -1,4 +1,4 @@
-# Changes the render file type constant to the user's file type of choice
+# Changes the render file type to jpg for smaller sized previews
 #
 # The corresponding Pipeline method is `output_file_as_jpg`.
 class ImageVise::OutputFileAsJpg
