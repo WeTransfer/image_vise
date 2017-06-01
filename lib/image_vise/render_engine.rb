@@ -318,7 +318,7 @@
     # Otherwise, keep the original format for as far as the supported formats list goes.
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
-    render_file_type = JPG_FILE_TYPE if magick_image["render_as"]
+    render_file_type = JPG_FILE_TYPE if magick_image["render_as"] == 'jpg'
 
     magick_image.format = render_file_type.ext
     magick_image.write(render_to_path)
