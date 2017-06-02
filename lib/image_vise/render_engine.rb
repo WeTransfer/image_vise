@@ -327,15 +327,21 @@
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
     render_file_type = JPG_FILE_TYPE if custom_config_options["filetype"] == 'jpg'
     render_file_type = GIF_FILE_TYPE if custom_config_options["filetype"] == 'gif'
+    jpg_quality = custom_config_options["jpg_quality"] if custom_config_options["jpg_quality"]
 
     # Remove our custom config info from image prior to write.
     magick_image["image_vise_config_data"] = ""
-
+    # puts magick_image["image_vise_config_data"] if magick_image["image_vise_config_data"]
     magick_image.format = render_file_type.ext
-    magick_image.write(render_to_path)
-  ensure
-    # destroy all the loaded images explicitly
-    (image_list || []).map {|img| ImageVise.destroy(img) }
-  end
+    if jpg_quality
+      magick_image.write(render_to_path) { self.quality = jpg_quality.to_i }
+    else
+      magick_image.write(render_to_path)
+    end
+
+    ensure
+      # destroy all the loaded images explicitly
+      (image_list || []).map {|img| ImageVise.destroy(img) }
+    end
 
 end

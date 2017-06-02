@@ -1,5 +1,4 @@
-# Changes the render file type to jpg for smaller sized previews.
-# Will also squash transparencies to support png to jpg conversions.
+# Changes the render file type to jpg, gif, or png.
 #
 # The corresponding Pipeline method is `custom_output_filetype`.
 class ImageVise::CustomOutputFiletype < Ks.strict(:filetype)
@@ -15,7 +14,7 @@ class ImageVise::CustomOutputFiletype < Ks.strict(:filetype)
 
   def apply!(image)
     config_hash = JSON.parse(image["image_vise_config_data"])
-    config_hash = {:filetype => filetype}
+    config_hash[:filetype] = filetype
     image["image_vise_config_data"] = config_hash.to_json
   end
 
