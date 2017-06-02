@@ -10,7 +10,7 @@ class ImageVise::CustomOutputFiletype < Ks.strict(:filetype)
     super
     self.filetype = filetype.to_s
     raise ArgumentError, "the :filetype parameter must be present and not empty" if self.filetype.empty?
-    raise InvalidRequest, "the requested filetype is not permitted" if !output_file_type_permitted?(self.filetype)
+    raise ArgumentError, "the requested filetype is not permitted" if !output_file_type_permitted?(self.filetype)
   end
 
   def apply!(image)
