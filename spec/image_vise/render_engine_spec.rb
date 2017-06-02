@@ -3,7 +3,7 @@ require 'rack/test'
 
 describe ImageVise::RenderEngine do
   include Rack::Test::Methods
-  
+
   let(:app) { ImageVise::RenderEngine.new }
 
   context 'when the subclass is configured to raise exceptions' do
@@ -11,14 +11,14 @@ describe ImageVise::RenderEngine do
       ImageVise.reset_allowed_hosts!
       ImageVise.reset_secret_keys!
     end
-    
+
     it 'raises an exception instead of returning an error response' do
       class << app
         def raise_exceptions?
           true
         end
       end
-      
+
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: 'http://unknown.com/image.jpg', pipeline: p)
       expect(app).to receive(:handle_generic_error).and_call_original
@@ -38,22 +38,22 @@ describe ImageVise::RenderEngine do
       ImageVise.reset_allowed_hosts!
       ImageVise.reset_secret_keys!
     end
-    
+
     it 'halts with 400 when the requested image cannot be opened by ImageMagick' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
       uri.path = '/___nonexistent_image.jpg'
-      
+
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      
+
       expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
         File.open(path, 'wb') {|f| f << 'totally not an image' }
         double(status: 200)
       }
       expect(app).to receive(:handle_request_error).and_call_original
-      
+
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(400)
       expect(last_response['Cache-Control']).to match(/public/)
@@ -72,7 +72,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(403)
       expect(last_response.body).to include('filesystem access is disabled')
     end
-    
+
     it 'responds with 403 when upstream returns it, and includes the URL in the error message' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
@@ -89,54 +89,54 @@ describe ImageVise::RenderEngine do
       expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
       expect(parsed['errors'].to_s).to include(uri.to_s)
     end
-    
+
     it 'replays upstream error response codes that are selected to be replayed to the requester' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
-      
+
       [404, 403, 503, 504, 500].each do | error_code |
         allow_any_instance_of(Patron::Session).to receive(:get_file).and_return(double(status: error_code))
-        
+
         p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
         image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-        
+
         get image_request.to_path_params('l33tness')
 
         expect(last_response.status).to eq(error_code)
         expect(last_response.headers).to have_key('Cache-Control')
         expect(last_response.headers['Cache-Control']).to match(/public/)
-        
+
         expect(last_response.headers['Content-Type']).to eq('application/json')
         parsed = JSON.load(last_response.body)
         expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
       end
     end
-    
+
     it 'sets very far caching headers and an ETag, and returns a 304 if any ETag is set' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
-      
+
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      
+
       req_path = image_request.to_path_params('l33tness')
-      
+
       get req_path, {}
       expect(last_response).to be_ok
       expect(last_response['ETag']).not_to be_nil
       expect(last_response['Cache-Control']).to match(/public/)
-      
+
       get req_path, {}, {'HTTP_IF_NONE_MATCH' => last_response['ETag']}
       expect(last_response.status).to eq(304)
-      
+
       # Should consider _any_ ETag a request to rerender something
       # that already exists in an upstream cache
       get req_path, {}, {'HTTP_IF_NONE_MATCH' => SecureRandom.hex(4)}
       expect(last_response.status).to eq(304)
     end
-    
+
     it 'responds with an image that passes through all the processing steps' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
@@ -164,7 +164,7 @@ describe ImageVise::RenderEngine do
        'jIn0'
       params = {q: q, sig: sig}
       req = ImageVise::ImageRequest.from_params(qs_params: params, secrets: ['this is fab'])
-      
+
       # We do a check based on the raised exception - the request will fail
       # at the fetcher lookup stage. That stage however takes place _after_ the
       # signature has been validated, which means that the slash within the
@@ -195,7 +195,7 @@ describe ImageVise::RenderEngine do
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
     end
-    
+
     it 'picks the image from the filesystem if that is permitted' do
       uri = 'file://' + test_image_path
       ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
@@ -213,7 +213,7 @@ describe ImageVise::RenderEngine do
       utf8_file_path = File.dirname(test_image_path) + '/картинка.jpg'
       FileUtils.cp_r(test_image_path, utf8_file_path)
       uri = 'file://' + URI.encode(utf8_file_path)
-      
+
       ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
       ImageVise.add_secret_key!('l33tness')
 
@@ -265,7 +265,7 @@ describe ImageVise::RenderEngine do
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
     end
-    
+
     it 'destroys all the loaded PSD layers' do
       uri = Addressable::URI.parse(public_url_psd_multilayer)
       ImageVise.add_allowed_host!(uri.host)
@@ -280,12 +280,12 @@ describe ImageVise::RenderEngine do
 
       # For each layer loaded into the ImageList
       expect(ImageVise).to receive(:destroy).and_call_original.exactly(5).times
-      
+
       get image_request.to_path_params('l33tness')
-      
+
       expect(last_response.status).to eq(200)
     end
-    
+
     it 'outputs a converted TIFF file as a PNG' do
       uri = Addressable::URI.parse(public_url_tif)
       ImageVise.add_allowed_host!(uri.host)
@@ -302,7 +302,7 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(200)
       expect(last_response.headers['Content-Type']).to eq('image/png')
     end
-    
+
     it 'outputs a converted TIFF file in the TIFF format if it is on the permitted list' do
       uri = Addressable::URI.parse(public_url_tif)
       ImageVise.add_allowed_host!(uri.host)
@@ -310,7 +310,7 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      
+
 
       class << app
         def source_file_type_permitted?(type); true; end

@@ -23,7 +23,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('1337ness')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').output_file_as_jpg
+      p = ImageVise::Pipeline.new.custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('1337ness')
@@ -38,7 +38,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('h00ray')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').output_file_as_jpg
+      p = ImageVise::Pipeline.new.custom_output_filetype(filetype: 'jpg').background_fill(color: 'white').geom(geometry_string: 'x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('h00ray')

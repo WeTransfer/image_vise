@@ -23,7 +23,7 @@ describe ImageVise::BackgroundFill do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('f1letype')
 
-      p = ImageVise::Pipeline.new.background_fill(color: 'white').geom(geometry_string: 'x600').output_file_as_jpg
+      p = ImageVise::Pipeline.new.background_fill(color: 'white').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('f1letype')
@@ -37,7 +37,7 @@ describe ImageVise::BackgroundFill do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('gr33n')
 
-      p = ImageVise::Pipeline.new.background_fill(color: 'green').geom(geometry_string: 'x600').output_file_as_jpg
+      p = ImageVise::Pipeline.new.background_fill(color: 'green').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('gr33n')
@@ -51,7 +51,7 @@ describe ImageVise::BackgroundFill do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('blanchedalm0nd')
 
-      p = ImageVise::Pipeline.new.background_fill(color: '#ffebcd').geom(geometry_string: 'x600').output_file_as_jpg
+      p = ImageVise::Pipeline.new.background_fill(color: '#ffebcd').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('blanchedalm0nd')

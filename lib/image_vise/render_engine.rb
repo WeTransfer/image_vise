@@ -45,8 +45,11 @@
   # The default file type for images with alpha
   PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
 
-  # Renders the file as a jpg if the OutputFileAsJpg operator is used
+  # Renders the file as a jpg if the custom output filetype operator is used
   JPG_FILE_TYPE = MagicBytes::FileType.new('jpg','image/jpeg').freeze
+
+  # Renders the file as a gif if the custom output filetype operator is used
+  GIF_FILE_TYPE = MagicBytes::FileType.new('gif','image/gif').freeze
 
   def bail(status, *errors_array)
     headers = if (300...500).cover?(status)
@@ -323,6 +326,7 @@
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
     render_file_type = JPG_FILE_TYPE if custom_config_options["filetype"] == 'jpg'
+    render_file_type = GIF_FILE_TYPE if custom_config_options["filetype"] == 'gif'
 
     # Remove our custom config info from image prior to write.
     magick_image["image_vise_config_data"] = ""
