@@ -320,7 +320,6 @@
     # If processing the image has created an alpha channel, use PNG always.
     # Otherwise, keep the original format for as far as the supported formats list goes.
     custom_config_options = JSON.parse(magick_image["image_vise_config_data"])
-    puts custom_config_options["filetype"]
     render_file_type = PNG_FILE_TYPE if magick_image.alpha?
     render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
     render_file_type = JPG_FILE_TYPE if custom_config_options["filetype"] == 'jpg'

@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 require 'rack/test'
 
-describe ImageVise::OutputFileAsJpg do
+describe ImageVise::CustomOutputFiletype do
   include Rack::Test::Methods
 
   let(:app) { ImageVise::RenderEngine.new }
@@ -9,9 +9,12 @@ describe ImageVise::OutputFileAsJpg do
   context 'pre export tests' do
     it "adds metadata to the image" do
       image = Magick::Image.read(test_image_path)[0]
-      described_class.new.apply!(image)
+      image["image_vise_config_data"] = Hash.new.to_json
+      filetype = "jpg"
+      described_class.new.apply!(image,filetype)
 
-      expect(image["image_vise_config_data"]["filetype"]).to eq("jpg")
+      config_hash = JSON.parse(image["image_vise_config_data"])
+      expect(config_hash["filetype"]).to eq("jpg")
     end
   end
 
@@ -32,7 +35,7 @@ describe ImageVise::OutputFileAsJpg do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('f1letype')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').output_file_as_jpg
+      p = ImageVise::Pipeline.new.custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x220')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('f1letype')
