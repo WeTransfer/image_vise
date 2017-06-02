@@ -1,4 +1,5 @@
-require 'spec_helper'
+require_relative '../spec_helper'
+require 'rack/test'
 
 describe ImageVise::OutputFileAsJpg do
   include Rack::Test::Methods
@@ -10,7 +11,7 @@ describe ImageVise::OutputFileAsJpg do
       image = Magick::Image.read(test_image_path)[0]
       described_class.new.apply!(image)
 
-      expect(image["render_as"]).to eq("jpg")
+      expect(image["image_vise_config_data"]["filetype"]).to eq("jpg")
     end
   end
 

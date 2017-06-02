@@ -4,9 +4,9 @@
 # The corresponding Pipeline method is `output_file_as_jpg`.
 class ImageVise::OutputFileAsJpg
   def apply!(image)
-    image.border!(0, 0, 'white')
-    image.alpha(Magick::DeactivateAlphaChannel)
-    image['render_as'] = 'jpg'
+    config_hash = JSON.parse(image["image_vise_config_data"])
+    config_hash = {:filetype => "jpg"}
+    image["image_vise_config_data"] = config_hash.to_json
   end
 
   ImageVise.add_operator 'output_file_as_jpg', self
