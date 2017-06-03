@@ -35,21 +35,8 @@
   # Which input files we permit (based on extensions stored in MagicBytes)
   PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg psd tif)
 
-  # Which output files are permitted (regardless of the input format
-  # the processed images will be converted to one of these types)
-  PERMITTED_OUTPUT_FILE_EXTENSIONS = %W( gif png jpg)
-
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
-
-  # The default file type for images with alpha
-  PNG_FILE_TYPE = MagicBytes::FileType.new('png','image/png').freeze
-
-  # Renders the file as a jpg if the custom output filetype operator is used
-  JPG_FILE_TYPE = MagicBytes::FileType.new('jpg','image/jpeg').freeze
-
-  # Renders the file as a gif if the custom output filetype operator is used
-  GIF_FILE_TYPE = MagicBytes::FileType.new('gif','image/gif').freeze
 
   def bail(status, *errors_array)
     headers = if (300...500).cover?(status)
@@ -229,15 +216,6 @@
     PERMITTED_SOURCE_FILE_EXTENSIONS.include?(magic_bytes_file_info.ext)
   end
 
-  # Tells whether the given file type may be returned
-  # as the result of the render
-  #
-  # @param magic_bytes_file_info[MagicBytes::FileType] the filetype
-  # @return [Boolean]
-  def output_file_type_permitted?(magic_bytes_file_info)
-    PERMITTED_OUTPUT_FILE_EXTENSIONS.include?(magic_bytes_file_info.ext)
-  end
-
   # Lists exceptions that should lead to the request being flagged
   # as invalid (4xx as opposed to 5xx for a generic server error).
   # Decent clients should _not_ retry those requests.
@@ -298,36 +276,23 @@
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = Magick::Image.read(source_file_path)
-    magick_image = image_list.first
+    magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
 
-    # Strip any incorrect or malicious data from our custom config field.
-    magick_image["image_vise_config_data"] = Hash.new.to_json
+    # If any operators want to stash some data for downstream use we use this Hash
+    metadata = {}
 
-    # Apply the pipeline
-    pipeline.apply!(magick_image)
+    # Apply the pipeline (all the image operators)
+    pipeline.apply!(magick_image, metadata)
 
-    # If processing the image has created an alpha channel, use PNG always.
-    # Otherwise, keep the original format for as far as the supported formats list goes.
-    custom_config_options = JSON.parse(magick_image["image_vise_config_data"])
-    render_file_type = PNG_FILE_TYPE if magick_image.alpha?
-    render_file_type = PNG_FILE_TYPE unless output_file_type_permitted?(render_file_type)
-    render_file_type = JPG_FILE_TYPE if custom_config_options["filetype"] == 'jpg'
-    render_file_type = GIF_FILE_TYPE if custom_config_options["filetype"] == 'gif'
-    jpg_quality = custom_config_options["jpg_quality"] if custom_config_options["jpg_quality"]
-
-    # Remove our custom config info from image prior to write.
-    magick_image["image_vise_config_data"] = ""
-    # puts magick_image["image_vise_config_data"] if magick_image["image_vise_config_data"]
-    magick_image.format = render_file_type.ext
-    if jpg_quality
-      magick_image.write(render_to_path) { self.quality = jpg_quality.to_i }
-    else
-      magick_image.write(render_to_path)
-    end
-
-    ensure
-      # destroy all the loaded images explicitly
-      (image_list || []).map {|img| ImageVise.destroy(img) }
+    # Write out the file honoring the possible injected metadata. One of the metadata
+    # elements (that an operator might want to alter) is the :writer, we forcibly #fetch
+    # it so that we get a KeyError if some operator has deleted it without providing a replacement.
+    # If no operators touched the writer we are going to use the automatic format selection
+    writer = metadata.fetch(:writer, ImageVise::AutoWriter.new)
+    writer.write_image!(magick_image, metadata, render_to_path)
+  ensure
+    # destroy all the loaded images explicitly
+    (image_list || []).map {|img| ImageVise.destroy(img) }
   end
 
 end

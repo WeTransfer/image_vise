@@ -43,7 +43,7 @@ describe ImageVise::Pipeline do
       strip_metadata
 
     image = Magick::Image.read(test_image_path)[0]
-    pipeline.apply! image
+    pipeline.apply! image, {}
     examine_image(image, "stenciled")
   end
 

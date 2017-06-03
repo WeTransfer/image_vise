@@ -11,10 +11,9 @@ class ImageVise::JpgQuality < Ks.strict(:jpg_quality)
     raise ArgumentError, "the :jpg_quality parameter must not be over 100" if self.jpg_quality.to_i > 100
   end
 
-  def apply!(image)
-    config_hash = JSON.parse(image["image_vise_config_data"])
-    config_hash[:jpg_quality] = jpg_quality
-    image["image_vise_config_data"] = config_hash.to_json
+  def apply!(image, metadata)
+    q = [1, self.jpg_quality.to_i, 100].sort[1]
+    metadata[:writer] = ImageVise::JPGWriter.new(jpeg_quality: q)
   end
 
   ImageVise.add_operator 'jpg_quality', self

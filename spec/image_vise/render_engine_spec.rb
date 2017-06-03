@@ -189,7 +189,6 @@ describe ImageVise::RenderEngine do
       expect(app).to receive(:extract_params_from_request).and_call_original
       expect(app).to receive(:image_rack_response).and_call_original
       expect(app).to receive(:source_file_type_permitted?).and_call_original
-      expect(app).to receive(:output_file_type_permitted?).and_call_original
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
@@ -299,26 +298,7 @@ describe ImageVise::RenderEngine do
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
-      expect(last_response.headers['Content-Type']).to eq('image/png')
-    end
-
-    it 'outputs a converted TIFF file in the TIFF format if it is on the permitted list' do
-      uri = Addressable::URI.parse(public_url_tif)
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('l33tness')
-
-      p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-
-
-      class << app
-        def source_file_type_permitted?(type); true; end
-        def output_file_type_permitted?(type); true; end
-      end
-
-      get image_request.to_path_params('l33tness')
-      expect(last_response.status).to eq(200)
-      expect(last_response.headers['Content-Type']).to eq('image/tiff')
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
     end
   end
 end
