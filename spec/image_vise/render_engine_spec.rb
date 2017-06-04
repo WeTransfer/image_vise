@@ -190,7 +190,6 @@ describe ImageVise::RenderEngine do
       expect(app).to receive(:image_rack_response).and_call_original
       expect(app).to receive(:source_file_type_permitted?).and_call_original
       expect(app).to receive(:output_file_type_permitted?).and_call_original
-      expect(app).to receive(:enable_forking?).and_call_original
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)

@@ -8,12 +8,5 @@ cache: bundler
 env:
   global:
     - SKIP_INTERACTIVE=yes
-  matrix:
-    - IMAGE_VISE_ENABLE_FORK=no
-    - IMAGE_VISE_ENABLE_FORK=yes
-
-matrix:
-  allow_failures:
-    - env: IMAGE_VISE_ENABLE_FORK=yes
 
 script: bundle exec rspec
