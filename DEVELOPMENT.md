@@ -109,14 +109,3 @@ actually using them. If you are using a library it is a one-time cost, with very
 Also note that image operators are not per definition Imagemagick-specific - it's completely possible to not only use
 a different library for processing them, but even to use a different image processing server complying to the
 same protocol (a signed JSON-encodded waybill of HTTP(S) source-URL + pipeline instructions).
-
-## Using forked child processes for RMagick tasks
-
-You can optionally set the `IMAGE_VISE_ENABLE_FORK` environment variable to `yes` to enable forking. When this
-variable is set, ImageVise will fork a child process and perform the image processing task within that process,
-killing it afterwards and deallocating all the memory. This can be extremely efficient for dealing with potential
-memory bloat issues in ImageMagick/RMagick. However, loading images into RMagick may hang in a forked child. This
-will lead to the child being timeout-terminated, and no image is going to be rendered. This issue is known and
-also platform-dependent (it does not happen on OSX but does happen on Docker within Ubuntu Trusty for instance).
-
-So, this feature _does_ exist but your mileage may vary with regards to it's use.
