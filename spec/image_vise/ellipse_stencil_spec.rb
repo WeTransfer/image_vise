@@ -15,5 +15,4 @@ describe ImageVise::EllipseStencil do
     stencil.apply!(image)
     examine_image(image, "circle-stencil-transparent-bg")
   end
-
 end
