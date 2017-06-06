@@ -1,64 +1,39 @@
 require_relative '../spec_helper'
-require 'rack/test'
 
 describe ImageVise::BackgroundFill do
-  include Rack::Test::Methods
 
-  let(:app) { ImageVise::RenderEngine.new }
+  it 'refuses empty parameters' do
+    expect { described_class.new(color:"") }.to raise_error(ArgumentError)
+  end
 
-  context 'export tests' do
+  it 'successfully exports a png with a fill' do
+    image = Magick::Image.read(test_image_png_transparency)[0]
+    expect(image).to be_alpha
+    background_fill = described_class.new(color: 'white')
+    background_fill.apply!(image)
 
-    before :each do
-      parsed_url = Addressable::URI.parse(public_url)
-      ImageVise.add_allowed_host!(parsed_url.host)
-    end
+    expect(image).to_not be_alpha
+    examine_image(image, "set-color-to-white")
+  end
 
-    after :each do
-      ImageVise.reset_allowed_hosts!
-      ImageVise.reset_secret_keys!
-    end
+  it 'can be passed CSS word colors and process them consistently' do
+    image = Magick::Image.read(test_image_png_transparency)[0]
 
-    it 'successfully exports a png as a jpg' do
-      uri = Addressable::URI.parse(public_url_png_transparency)
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('f1letype')
+    background_fill = described_class.new(color: 'green')
+    background_fill.apply!(image)
+    hex_color = image.pixel_color(720,248).to_color(Magick::AllCompliance,matte=false, 8, hex=true)
 
-      p = ImageVise::Pipeline.new.background_fill(color: 'white').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+    expect(hex_color).to eq("#008000")
+    examine_image(image, "set-color-to-green")
+  end
 
-      get image_request.to_path_params('f1letype')
-      examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.status).to eq(200)
-    end
+  it 'can be passed hex colors and process them consistently' do
+    image = Magick::Image.read(test_image_png_transparency)[0]
+    background_fill = described_class.new(color: '#ffebcd')
+    background_fill.apply!(image)
+    hex_color = image.pixel_color(720,248).to_color(Magick::AllCompliance,matte=false, 8, hex=true)
 
-    it 'can be passed various colors' do
-      uri = Addressable::URI.parse(public_url_png_transparency)
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('gr33n')
-
-      p = ImageVise::Pipeline.new.background_fill(color: 'green').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-
-      get image_request.to_path_params('gr33n')
-      examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.status).to eq(200)
-    end
-
-    it 'can be passed hex colors' do
-      uri = Addressable::URI.parse(public_url_png_transparency)
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('blanchedalm0nd')
-
-      p = ImageVise::Pipeline.new.background_fill(color: '#ffebcd').custom_output_filetype(filetype: 'jpg').geom(geometry_string: 'x600')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-
-      get image_request.to_path_params('blanchedalm0nd')
-      examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.status).to eq(200)
-    end
-
+    expect(hex_color).to eq("#FFEBCD")
+    examine_image(image, "set-color-to-blanched-almond")
   end
 end
