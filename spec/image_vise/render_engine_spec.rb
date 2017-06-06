@@ -310,10 +310,11 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('1337ness')
-      examine_image_from_string(last_response.body)
+
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.headers['Content-Length'].to_i).to be_within(1000).of(58000)
       expect(last_response.status).to eq(200)
+
+      examine_image_from_string(last_response.body)
     end
 
     it 'converts a PNG into a JPG applying a background fill' do
@@ -325,10 +326,11 @@ describe ImageVise::RenderEngine do
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
       get image_request.to_path_params('h00ray')
-      examine_image_from_string(last_response.body)
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.headers['Content-Length'].to_i).to be_within(100).of(1000)
+
       expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+
+      examine_image_from_string(last_response.body)
     end
   end
 end
