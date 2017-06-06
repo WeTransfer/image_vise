@@ -18,14 +18,14 @@ module Examine
     # The first one is what Gitlab-CI sets for us.
     return if ENV.key?("CI_BUILD_ID")
     return if ENV.key?("SKIP_INTERACTIVE")
-    
+
     Dir.mkdir(TEST_RENDERS_DIR) unless File.exist?(TEST_RENDERS_DIR)
     path = File.join(TEST_RENDERS_DIR, name_tag + '.png')
     magick_image.format = 'png'
     magick_image.write(path)
     `open #{path}`
   end
-  
+
   def examine_image_from_string(string)
     # When doing TDD, waiting for stuff to open is a drag - allow
     # it to be squelched using 2 envvars. Also viewing images
@@ -33,7 +33,7 @@ module Examine
     # The first one is what Gitlab-CI sets for us.
     return if ENV.key?("CI_BUILD_ID")
     return if ENV.key?("SKIP_INTERACTIVE")
-    
+
     Dir.mkdir(TEST_RENDERS_DIR) unless File.exist?(TEST_RENDERS_DIR)
     random_name = 'test-image-%s' % SecureRandom.hex(3)
     path = File.join(TEST_RENDERS_DIR, random_name)
@@ -82,6 +82,10 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour_adobergb.jpg')
   end
 
+  def test_image_png_transparency
+    File.expand_path(__dir__ + '/waterside_magic_hour_transp.png')
+  end
+
   def public_url
     'http://localhost:9001/waterside_magic_hour.jpg'
   end
@@ -96,6 +100,10 @@ RSpec.configure do | config |
 
   def public_url_tif
     'http://localhost:9001/waterside_magic_hour_gray.tif'
+  end
+
+  def public_url_png_transparency
+    'http://localhost:9001/waterside_magic_hour_transp.png'
   end
 
   config.around :each do |e|
