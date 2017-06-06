@@ -29,7 +29,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'patron', '~> 0.6'
   spec.add_dependency 'rmagick', '~> 2.15'
-  spec.add_dependency 'exceptional_fork', '~> 1.2'
   spec.add_dependency 'ks'
   spec.add_dependency 'magic_bytes', '~> 1'
   spec.add_dependency 'rack', '~> 1'

@@ -162,15 +162,8 @@
 
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 
-    # Perform the processing
-    if enable_forking?
-      require 'exceptional_fork'
-      ExceptionalFork.fork_and_wait do
-        apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
-      end
-    else
-      apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
-    end
+    # Do the actual imaging stuff
+    apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
 
     # Catch this one early
     render_destination_file.rewind
@@ -293,13 +286,6 @@
     false
   end
 
-  # Tells whether image processing in a forked subproces should be turned on
-  #
-  # @return [Boolean]
-  def enable_forking?
-    ENV['IMAGE_VISE_ENABLE_FORK'] == 'yes'
-  end
-
   # Applies the given {ImageVise::Pipeline} to the image, and writes the render to
   # the given path.
   #
@@ -342,6 +328,6 @@
     ensure
       # destroy all the loaded images explicitly
       (image_list || []).map {|img| ImageVise.destroy(img) }
-    end
+  end
 
 end
