@@ -34,7 +34,7 @@ describe ImageVise do
       described_class.reset_secret_keys!
       expect {
         expect(described_class.secret_keys)
-      }.to raise_error
+      }.to raise_error(/add a key using/)
     end
   end
 
