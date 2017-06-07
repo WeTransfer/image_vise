@@ -36,5 +36,4 @@ describe ImageVise::BackgroundFill do
     expect(hex_color).to eq("#FFEBCD")
     examine_image(image, "set-color-to-blanched-almond")
   end
-
 end

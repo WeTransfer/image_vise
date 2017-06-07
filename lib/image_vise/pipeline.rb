@@ -44,10 +44,20 @@ class ImageVise::Pipeline
     end
   end
 
-  def apply!(magick_image)
-    @ops.each{|e| e.apply!(magick_image) }
+  def apply!(magick_image, image_metadata)
+    @ops.each do |operator|
+      apply_operator_passing_metadata(magick_image, operator, image_metadata)
+    end
   end
-  
+
+  def apply_operator_passing_metadata(magick_image, operator, image_metadata)
+    if operator.method(:apply!).arity == 1
+      operator.apply!(magick_image)
+    else
+      operator.apply!(magick_image, image_metadata)
+    end
+  end
+
   def each(&b)
     @ops.each(&b)
   end
