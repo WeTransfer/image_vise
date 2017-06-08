@@ -38,6 +38,9 @@
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
 
+  # A list of raw filetypes that we do NOT want to grab the first image from.
+  PERMITTED_RAW_FILE_EXTENSIONS = %w( cr2 nef )
+
   def bail(status, *errors_array)
     headers = if (300...500).cover?(status)
       JSON_ERROR_HEADERS_REQUEST.dup
@@ -273,11 +276,14 @@
   # @return [void]
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
     render_file_type = source_file_type
-
-    # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
-    image_list = Magick::Image.read(source_file_path)
-    magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
-
+    # Hasty little check to see if we're processing a RAW file and do not want to load only the preview.
+    if PERMITTED_RAW_FILE_EXTENSIONS.include?(source_file_type)
+      magick_image = image_list
+    else
+      # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
+      image_list = Magick::Image.read(source_file_path)
+      magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
+    end
     # If any operators want to stash some data for downstream use we use this Hash
     metadata = {}
 
