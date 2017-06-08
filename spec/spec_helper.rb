@@ -84,6 +84,10 @@ RSpec.configure do | config |
   def test_image_mismatched_colorspace_profile_path
     File.expand_path(__dir__ + '/worker_in_tube.jpg')
   end
+  
+  def test_image_png_transparency
+    File.expand_path(__dir__ + '/waterside_magic_hour_transp.png')
+  end
 
   def public_url
     'http://localhost:9001/waterside_magic_hour.jpg'
@@ -99,6 +103,10 @@ RSpec.configure do | config |
 
   def public_url_tif
     'http://localhost:9001/waterside_magic_hour_gray.tif'
+  end
+
+  def public_url_png_transparency
+    'http://localhost:9001/waterside_magic_hour_transp.png'
   end
 
   config.around :each do |e|

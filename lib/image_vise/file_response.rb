@@ -5,7 +5,7 @@ class ImageVise::FileResponse
   def initialize(file)
     @file = file
   end
-  
+
   def each
     @file.flush # Make sure all the writes have been synchronized
     # We can easily open another file descriptor
@@ -15,7 +15,7 @@ class ImageVise::FileResponse
       end
     end
   end
-  
+
   def close
     ImageVise.close_and_unlink(@file)
   end

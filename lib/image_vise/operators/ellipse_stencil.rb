@@ -9,7 +9,8 @@
 # The corresponding Pipeline method is `ellipse_stencil`.
 class ImageVise::EllipseStencil
   C_black = 'black'.freeze
-  private_constant :C_black
+  C_white = 'white'.freeze
+  private_constant :C_white, :C_black
 
   def apply!(magick_image)
     width, height = magick_image.columns, magick_image.rows
@@ -25,9 +26,8 @@ class ImageVise::EllipseStencil
     # must be taken not to overmult or overdivide.
     #
     # To begin,generate a black and white image for the stencil
-    circle_img = Magick::Image.new(width, height)
-    draw_circle(circle_img, width, height)
-    mask = circle_img.negate
+    mask = Magick::Image.new(width, height)
+    draw_circle(mask, width, height)
     
     # At this stage the mask contains a B/W image of the circle, black outside, white inside.
     # Retain the alpha of the original in a separate image
@@ -44,7 +44,7 @@ class ImageVise::EllipseStencil
     # And perform the operation (set gray(RGB) of mask as the A of magick_image)
     magick_image.composite!(mask, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
   ensure
-    [mask, only_alpha, circle_img].each do |maybe_image|
+    [mask, only_alpha].each do |maybe_image|
       ImageVise.destroy(maybe_image)
     end
   end
@@ -58,6 +58,8 @@ class ImageVise::EllipseStencil
 
     gc = Magick::Draw.new
     gc.fill C_black
+    gc.rectangle(0, 0, width, height)
+    gc.fill C_white
     gc.ellipse(center_x, center_y, radius_width, radius_height, deg_start=0, deg_end=360)
     gc.draw(into_image)
   ensure

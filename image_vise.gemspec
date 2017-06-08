@@ -22,18 +22,17 @@ Gem::Specification.new do |spec|
     raise "RubyGems 2.0 or newer is required to protect against public gem pushes."
   end
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files         = `git ls-files -z`.split("\x0")
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'patron', '~> 0.6'
   spec.add_dependency 'rmagick', '~> 2.15'
-  spec.add_dependency 'exceptional_fork', '~> 1.2'
   spec.add_dependency 'ks'
   spec.add_dependency 'magic_bytes', '~> 1'
   spec.add_dependency 'rack', '~> 1'
-  
+
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rack-test"
