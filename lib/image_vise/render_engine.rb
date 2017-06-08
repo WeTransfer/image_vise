@@ -279,7 +279,7 @@
     image_list = Magick::Image.read(source_file_path)
     # Hasty little check to see if we're processing a NEF file and do not want to load only the preview.
     if source_file_type == "nef"
-      magick_image = image_list.second
+      magick_image = image_list
     else
       # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
       magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
