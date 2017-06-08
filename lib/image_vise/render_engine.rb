@@ -277,9 +277,9 @@
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
     render_file_type = source_file_type
     image_list = Magick::Image.read(source_file_path)
-    # Hasty little check to see if we're processing a RAW file and do not want to load only the preview.
-    if PERMITTED_RAW_FILE_EXTENSIONS.include?(source_file_type)
-      magick_image = image_list
+    # Hasty little check to see if we're processing a NEF file and do not want to load only the preview.
+    if source_file_type == "nef"
+      magick_image = image_list.second
     else
       # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
       magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
