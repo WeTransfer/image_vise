@@ -276,9 +276,11 @@
   # @return [void]
   def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
     render_file_type = source_file_type
+
+    # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = Magick::Image.read(source_file_path)
-      # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
-      magick_image = image_list # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
+    magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
+
     # If any operators want to stash some data for downstream use we use this Hash
     metadata = {}
 
