@@ -1,3 +1,8 @@
+require 'simplecov'
+SimpleCov.start do
+  add_filter "/spec/"
+end
+
 require 'bundler'
 Bundler.require
 
@@ -40,11 +45,6 @@ module Examine
     File.open(path, 'wb'){|f| f << string }
     `open #{path}`
   end
-end
-
-require 'simplecov'
-SimpleCov.start do
-  add_filter "/spec/"
 end
 
 require_relative '../lib/image_vise'
