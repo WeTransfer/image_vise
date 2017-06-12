@@ -33,7 +33,7 @@
   RENDER_TIMEOUT_SECONDS = 10
 
   # Which input files we permit (based on extensions stored in MagicBytes)
-  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg psd tif)
+  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg psd tif cr2 nef )
 
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
@@ -280,7 +280,6 @@
 
     # If any operators want to stash some data for downstream use we use this Hash
     metadata = {}
-
     # Apply the pipeline (all the image operators)
     pipeline.apply!(magick_image, metadata)
 

@@ -86,6 +86,14 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour_transp.png')
   end
 
+  def test_image_cr2
+    File.expand_path(__dir__ + '/RAW_CANON_EOS_5DS.CR2')
+  end
+
+  def test_image_nef
+    File.expand_path(__dir__ + '/nef_test.NEF')
+  end
+
   def public_url
     'http://localhost:9001/waterside_magic_hour.jpg'
   end
@@ -104,6 +112,14 @@ RSpec.configure do | config |
 
   def public_url_png_transparency
     'http://localhost:9001/waterside_magic_hour_transp.png'
+  end
+
+  def public_url_CR2_file
+    'http://localhost:9001/RAW_CANON_EOS_5DS.CR2'
+  end
+
+  def public_url_NEF_file
+    'http://localhost:9001/nef_test.NEF'
   end
 
   config.around :each do |e|

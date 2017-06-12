@@ -317,6 +317,46 @@ describe ImageVise::RenderEngine do
       examine_image_from_string(last_response.body)
     end
 
+    it 'processes a CR2 file with a forced conversion to JPEG' do
+      if File.open(test_image_cr2).raises(Errno::ENOENT)
+        skip "skipped: add a CR2 file to run this test"
+      else
+        uri = Addressable::URI.parse(public_url_CR2_file)
+        ImageVise.add_allowed_host!(uri.host)
+        ImageVise.add_secret_key!('1337ness')
+
+        p = ImageVise::Pipeline.new.geom(geometry_string: 'x800').force_jpg_out(quality: 85)
+        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+        get image_request.to_path_params('1337ness')
+
+        # expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+        # expect(last_response.status).to eq(200)
+
+        examine_image_from_string(last_response.body)
+      end
+    end
+
+    it 'processes a NEF file with a forced conversion to JPEG' do
+      if !public_url_NEF_file
+        skip "skipped: add an NEF file to run this test"
+      else
+        uri = Addressable::URI.parse(public_url_NEF_file)
+        ImageVise.add_allowed_host!(uri.host)
+        ImageVise.add_secret_key!('1337ness')
+
+        p = ImageVise::Pipeline.new.geom(geometry_string: 'x800').srgb.force_jpg_out(quality: 85)
+        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+        get image_request.to_path_params('1337ness')
+
+        expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+        expect(last_response.status).to eq(200)
+
+        examine_image_from_string(last_response.body)
+      end
+    end
+
     it 'converts a PNG into a JPG applying a background fill' do
       uri = Addressable::URI.parse(public_url_png_transparency)
       ImageVise.add_allowed_host!(uri.host)
