@@ -6,3 +6,5 @@ Gemfile.lock
 *.log
 pkg
 coverage
+cr2_test.CR2
+nef_test.NEF

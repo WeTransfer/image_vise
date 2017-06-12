@@ -87,7 +87,7 @@ RSpec.configure do | config |
   end
 
   def test_image_cr2
-    File.expand_path(__dir__ + '/RAW_CANON_EOS_5DS.CR2')
+    File.expand_path(__dir__ + '/cr2_test.CR2')
   end
 
   def test_image_nef
@@ -115,7 +115,7 @@ RSpec.configure do | config |
   end
 
   def public_url_CR2_file
-    'http://localhost:9001/RAW_CANON_EOS_5DS.CR2'
+    'http://localhost:9001/cr2_test.CR2'
   end
 
   def public_url_NEF_file

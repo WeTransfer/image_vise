@@ -337,9 +337,10 @@ describe ImageVise::RenderEngine do
 
   # This test will be skipped unless you manually add a CR2. There is a
   # URL and a path already setup for you in the spec_helper. You'll need to
-  # pass the path to the URI parser below.
+  # pass the path to the URI parser below. If you use the filename in the
+  # spec_helper the image should be automatically gitignored.
   it 'processes a CR2 file with a forced conversion to JPEG' do
-    uri = Addressable::URI.parse("")
+    uri = Addressable::URI.parse("") # add public_url_CR2_file here
     if uri.empty?
       skip "skipped: add a CR2 file to run this test"
     else
@@ -351,8 +352,8 @@ describe ImageVise::RenderEngine do
 
       get image_request.to_path_params('1337ness')
 
-      # expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      # expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+      expect(last_response.status).to eq(200)
 
       examine_image_from_string(last_response.body)
     end
@@ -360,9 +361,10 @@ describe ImageVise::RenderEngine do
 
   # This test will be skipped unless you manually add an NEF. There is a
   # URL and a path already setup for you in the spec_helper. You'll need to
-  # pass the path to the URI parser below.
+  # pass the path to the URI parser below. If you use the filename in the
+  # spec_helper the image should be automatically gitignored.
   it 'processes an NEF file with a forced conversion to JPEG' do
-    uri = Addressable::URI.parse("")
+    uri = Addressable::URI.parse("") # add public_url_NEF_file here
     if uri.empty?
       skip "skipped: add an NEF file to run this test"
     else
