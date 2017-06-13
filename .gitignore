@@ -8,3 +8,4 @@ pkg
 coverage
 cr2_test.CR2
 nef_test.NEF
+psd_transparency_test.psd

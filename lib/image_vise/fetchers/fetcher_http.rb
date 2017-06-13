@@ -1,9 +1,6 @@
 class ImageVise::FetcherHTTP
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 5
 
-  # Which raw filetypes we permit (based on compatibility with ImageMagick)
-  PERMITTED_RAW_FILE_EXTENSIONS = %w( cr2 nef )
-
   class AccessError < StandardError; end
 
   class UpstreamError < StandardError
@@ -15,13 +12,7 @@ class ImageVise::FetcherHTTP
   end
 
   def self.fetch_uri_to_tempfile(uri)
-    extension = uri.to_s[-3,3].downcase
-    if PERMITTED_RAW_FILE_EXTENSIONS.include?(extension)
-      tf = Tempfile.new(['imagevise-http-download', "." + extension])
-      tf.path
-    else
-      tf = Tempfile.new 'imagevise-http-download'
-    end
+    tf = Tempfile.new 'imagevise-http-download'
     verify_uri_access!(uri)
     s = Patron::Session.new
     s.automatic_content_encoding = true

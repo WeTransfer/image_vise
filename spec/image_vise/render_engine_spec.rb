@@ -2,9 +2,9 @@ require_relative '../spec_helper'
 require 'rack/test'
 
 describe ImageVise::RenderEngine do
-  include Rack::Test::Methods
+include Rack::Test::Methods
 
-  let(:app) { ImageVise::RenderEngine.new }
+let(:app) { ImageVise::RenderEngine.new }
 
   context 'when the subclass is configured to raise exceptions' do
     after :each do
@@ -333,53 +333,29 @@ describe ImageVise::RenderEngine do
 
       examine_image_from_string(last_response.body)
     end
-  end
 
-  # This test will be skipped unless you manually add a CR2. There is a
-  # URL and a path already setup for you in the spec_helper. You'll need to
-  # pass the path to the URI parser below. If you use the filename in the
-  # spec_helper the image should be automatically gitignored.
-  it 'processes a CR2 file with a forced conversion to JPEG' do
-    uri = Addressable::URI.parse("") # add public_url_CR2_file here
-    if uri.empty?
-      skip "skipped: add a CR2 file to run this test"
-    else
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('1337ness')
+    # This test will be skipped unless you manually add a PSD with transparency. There is a
+    # URL and a path already setup for you in the spec_helper. You'll need to
+    # pass the path to the URI parser below. If you use the filename in the
+    # spec_helper the image should be automatically gitignored.
+    it 'converts a PSD with transparency into a JPG applying a background fill' do
+      uri = Addressable::URI.parse(public_url_psd_transparency) # add public_url_psd_transparency here
+      if uri.empty?
+        skip "skipped: add a PSD file with a transparency to run this test"
+      else
+        ImageVise.add_allowed_host!(uri.host)
+        ImageVise.add_secret_key!('h00ray')
 
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x800').force_jpg_out(quality: 85)
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+        p = ImageVise::Pipeline.new.srgb.background_fill(color: 'white').geom(geometry_string: 'x800').force_jpg_out(quality: 80)
+        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
-      get image_request.to_path_params('1337ness')
+        get image_request.to_path_params('h00ray')
 
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.status).to eq(200)
+        # expect(last_response.status).to eq(200)
+        # expect(last_response.headers['Content-Type']).to eq('image/jpeg')
 
-      examine_image_from_string(last_response.body)
-    end
-  end
-
-  # This test will be skipped unless you manually add an NEF. There is a
-  # URL and a path already setup for you in the spec_helper. You'll need to
-  # pass the path to the URI parser below. If you use the filename in the
-  # spec_helper the image should be automatically gitignored.
-  it 'processes an NEF file with a forced conversion to JPEG' do
-    uri = Addressable::URI.parse("") # add public_url_NEF_file here
-    if uri.empty?
-      skip "skipped: add an NEF file to run this test"
-    else
-      ImageVise.add_allowed_host!(uri.host)
-      ImageVise.add_secret_key!('1337ness')
-
-      p = ImageVise::Pipeline.new.geom(geometry_string: 'x800').srgb.force_jpg_out(quality: 85)
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-
-      get image_request.to_path_params('1337ness')
-
-      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
-      expect(last_response.status).to eq(200)
-
-      examine_image_from_string(last_response.body)
+        examine_image_from_string(last_response.body)
+      end
     end
   end
 end

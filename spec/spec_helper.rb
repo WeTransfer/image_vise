@@ -94,6 +94,10 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/nef_test.NEF')
   end
 
+  def test_image_nef
+    File.expand_path(__dir__ + '/nef_test.NEF')
+  end
+
   def public_url
     'http://localhost:9001/waterside_magic_hour.jpg'
   end
@@ -112,6 +116,10 @@ RSpec.configure do | config |
 
   def public_url_png_transparency
     'http://localhost:9001/waterside_magic_hour_transp.png'
+  end
+
+  def public_url_psd_transparency
+    'http://localhost:9001/psd_transparency_test.psd'
   end
 
   def public_url_CR2_file
