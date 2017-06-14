@@ -12,17 +12,19 @@ describe ImageVise::FetcherHTTP do
 
   it 'raises an AccessError if the host of the URL is not on the whitelist' do
     uri = URI('https://wrong-origin.com/image.psd')
+    extension = ".psd"
     expect {
-      ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri)
+      ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri,extension)
     }.to raise_error(ImageVise::FetcherHTTP::AccessError, /is not permitted as source/)
   end
 
   it 'raises an UpstreamError if the upstream fetch returns an error-ish status code' do
     uri = URI('http://localhost:9001/forbidden')
+    extension = ".jpg"
     ImageVise.add_allowed_host! 'localhost'
-    
+
     expect {
-      ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri)
+      ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri,extension)
     }.to raise_error {|e|
       expect(e).to be_kind_of(ImageVise::FetcherHTTP::UpstreamError)
       expect(e.message).to include(uri.to_s)
@@ -33,9 +35,10 @@ describe ImageVise::FetcherHTTP do
 
   it 'fetches the image into a Tempfile' do
     uri = URI(public_url_psd)
+    extension = ".psd"
     ImageVise.add_allowed_host! 'localhost'
 
-    result = ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri)
+    result = ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri,extension)
 
     expect(result).to be_kind_of(Tempfile)
     expect(result.size).to be_nonzero

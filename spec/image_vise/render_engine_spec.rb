@@ -20,7 +20,7 @@ describe ImageVise::RenderEngine do
       end
 
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: 'http://unknown.com/image.jpg', pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: 'http://unknown.com/image.jpg', pipeline: p, extension: '.jpg')
       expect(app).to receive(:handle_generic_error).and_call_original
       expect {
         get image_request.to_path_params('l33tness')
@@ -46,7 +46,7 @@ describe ImageVise::RenderEngine do
       uri.path = '/___nonexistent_image.jpg'
 
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p,extension:".jpg")
 
       expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
         File.open(path, 'wb') {|f| f << 'totally not an image' }
@@ -66,7 +66,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension:".jpg")
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(403)
@@ -80,7 +80,7 @@ describe ImageVise::RenderEngine do
       uri.path = '/forbidden'
 
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.jpg')
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(403)
@@ -99,7 +99,7 @@ describe ImageVise::RenderEngine do
         allow_any_instance_of(Patron::Session).to receive(:get_file).and_return(double(status: error_code))
 
         p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
-        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+        image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p,extension:".jpg")
 
         get image_request.to_path_params('l33tness')
 
@@ -119,7 +119,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.jpg')
 
       req_path = image_request.to_path_params('l33tness')
 
@@ -143,7 +143,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension:".jpg")
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
@@ -181,7 +181,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: ".jpg")
       params = image_request.to_query_string_params('l33tness')
 
       expect(app).to receive(:parse_env_into_request).and_call_original
@@ -200,7 +200,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.jpg')
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
@@ -216,7 +216,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension:".jpg")
 
       get image_request.to_path_params('l33tness')
       File.unlink(utf8_file_path)
@@ -228,7 +228,7 @@ describe ImageVise::RenderEngine do
       uri = 'file://' + URI.encode(test_image_path)
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: ".jpg")
 
       get image_request.to_path_params('l33tness'), {'extra' => '123'}
 
@@ -241,7 +241,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220').ellipse_stencil
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: ".jpg")
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
@@ -258,7 +258,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220').ellipse_stencil
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.psd')
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)
@@ -270,7 +270,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.psd')
 
       class << app
         def raise_exceptions?; true; end
@@ -290,7 +290,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('l33tness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '220x220')
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.tif')
 
       class << app
         def source_file_type_permitted?(type); true; end
@@ -307,7 +307,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('1337ness')
 
       p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').force_jpg_out(quality: 85)
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension: '.jpg')
 
       get image_request.to_path_params('1337ness')
 
@@ -323,7 +323,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_secret_key!('h00ray')
 
       p = ImageVise::Pipeline.new.background_fill(color: 'white').geom(geometry_string: 'x220').force_jpg_out(quality: 5)
-      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p, extension:".png")
 
       get image_request.to_path_params('h00ray')
 
