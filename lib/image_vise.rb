@@ -77,11 +77,11 @@ class ImageVise
     #
     # @yield {ImageVise::Pipeline}
     # @return [Hash]
-    def image_params(src_url:, secret:)
+    def image_params(src_url:, extension:, secret:)
       p = Pipeline.new
       yield(p)
       raise ArgumentError, "Image pipeline has no steps defined" if p.empty?
-      ImageRequest.new(src_url: URI(src_url), pipeline: p).to_query_string_params(secret)
+      ImageRequest.new(src_url: URI(src_url), extension: extension, pipeline: p).to_query_string_params(secret)
     end
 
     # Generate a path for a resized image. Yields a Pipeline object that
@@ -96,11 +96,11 @@ class ImageVise
     #
     # @yield {ImageVise::Pipeline}
     # @return [String]
-    def image_path(src_url:, secret:)
+    def image_path(src_url:, extension:, secret:)
       p = Pipeline.new
       yield(p)
       raise ArgumentError, "Image pipeline has no steps defined" if p.empty?
-      ImageRequest.new(src_url: URI(src_url), pipeline: p).to_path_params(secret)
+      ImageRequest.new(src_url: URI(src_url), extension: extension, pipeline: p).to_path_params(secret)
     end
 
     # Adds an operator

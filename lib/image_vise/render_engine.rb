@@ -130,7 +130,7 @@
   # @return [Array<File, MagicBytes::FileType, String]
   def process_image_request(image_request)
     # Recover the source image URL and the pipeline instructions (all the image ops)
-    source_image_uri, pipeline = image_request.src_url, image_request.pipeline
+    source_image_uri, pipeline, extension = image_request.src_url, image_request.pipeline, image_request.extension
     raise 'Image pipeline has no operators' if pipeline.empty?
 
     # Compute an ETag which describes this image transform + image source location.
@@ -138,7 +138,7 @@
     etag = image_request.cache_etag
 
     # Download/copy the original into a Tempfile
-    fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
+    fetcher = ImageVise.fetcher_for(source_image_uri.scheme, extension)
     source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
 
     # Make sure we do not try to process something...questionable

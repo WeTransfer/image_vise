@@ -10,27 +10,28 @@ class ImageVise::FetcherHTTP
       @http_status = http_status
     end
   end
-  
-  def self.fetch_uri_to_tempfile(uri)
-    tf = Tempfile.new 'imagevise-http-download'
+
+  def self.fetch_uri_to_tempfile(uri, extension)
+    tf = Tempfile.new(['imagevise-http-download', extension])
+    tf.path
     verify_uri_access!(uri)
     s = Patron::Session.new
     s.automatic_content_encoding = true
     s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
     s.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    
+
     response = s.get_file(uri.to_s, tf.path)
-    
+
     if response.status != 200
       raise UpstreamError.new(response.status, "Unfortunate upstream response #{response.status} on #{uri}")
     end
-    
+
     tf
   rescue Exception => e
     ImageVise.close_and_unlink(tf)
     raise e
   end
-  
+
   def self.verify_uri_access!(uri)
     host = uri.host
     return if ImageVise.allowed_hosts.include?(uri.host)
