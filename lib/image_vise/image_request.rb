@@ -27,7 +27,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :extension, :pipeline)
 
     # Pick up the URL and validate it
     source_url_str = params.fetch(:src_url).to_s
-    source_extension = params.fetch(:extension).to_s
+    source_extension = params.fetch(:extension).to_s if params.fetch(:extension)
     raise URLError, "the :src_url parameter must be non-empty" if source_url_str.empty?
     pipeline_definition = params.fetch(:pipeline)
     new(src_url: URI(source_url_str), extension: source_extension, pipeline: ImageVise::Pipeline.from_param(pipeline_definition))

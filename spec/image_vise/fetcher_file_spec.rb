@@ -8,14 +8,15 @@ describe ImageVise::FetcherFile do
   it 'is registered as a fetcher for file://' do
     expect(ImageVise.fetcher_for('file')).to eq(ImageVise::FetcherFile)
   end
-  
+
   it 'returns a Tempfile containing this test suite' do
     path = File.expand_path(__FILE__)
     ruby_files_in_this_directory = __dir__ + '/*.rb'
     ImageVise.allow_filesystem_source! ruby_files_in_this_directory
-    
+
     uri = URI('file://' + URI.encode(path))
-    fetched = ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
+    extension = ".jpg"
+    fetched = ImageVise::FetcherFile.fetch_uri_to_tempfile(uri,extension)
 
     expect(fetched).to be_kind_of(Tempfile)
     expect(fetched.size).to eq(File.size(__FILE__))
@@ -28,11 +29,12 @@ describe ImageVise::FetcherFile do
     ImageVise.deny_filesystem_sources!
 
     uri = URI('file://' + URI.encode(path))
+    extension = ".jpg"
     expect {
-      ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
+      ImageVise::FetcherFile.fetch_uri_to_tempfile(uri, extension)
     }.to raise_error(ImageVise::FetcherFile::AccessError)
   end
-  
+
   it 'raises a meaningful exception if this file is not permitted as source' do
     path = File.expand_path(__FILE__)
 
@@ -41,8 +43,9 @@ describe ImageVise::FetcherFile do
     ImageVise.allow_filesystem_source! text_files_in_this_directory
 
     uri = URI('file://' + URI.encode(path))
+    extension = ".jpg"
     expect {
-      ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
+      ImageVise::FetcherFile.fetch_uri_to_tempfile(uri,extension)
     }.to raise_error(ImageVise::FetcherFile::AccessError)
   end
 end
