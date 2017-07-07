@@ -208,6 +208,7 @@ The gem version is specified in `image_vise.rb`. When contributing, please follo
 
 Copyright (c) 2016 WeTransfer. See LICENSE.txt for further details.
 The licensing terms also apply to the `waterside_magic_hour.jpg` test image.
+The `worker_in_tube.jpg` is used with permission from Arcadis Nederland B.V.
 
 The sRGB color profiles are [downloaded from the ICC](http://www.color.org/srgbprofiles.xalter) and it's
 use is governed by the terms present in the LICENSE.txt
