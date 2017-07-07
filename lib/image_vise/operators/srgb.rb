@@ -25,6 +25,9 @@ class ImageVise::SRGB
   PROFILE_PATH = File.expand_path(__dir__ + '/sRGB_v4_ICC_preference_displayclass.icc')
   def apply!(magick_image)
     magick_image.add_profile(PROFILE_PATH)
+  rescue Magick::ImageMagickError
+    magick_image.strip!
+    magick_image.add_profile(PROFILE_PATH)
   end
   ImageVise.add_operator 'srgb', self
 end

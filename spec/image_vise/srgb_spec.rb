@@ -20,4 +20,17 @@ describe ImageVise::SRGB do
     image.strip!
     examine_image(image, "from-srgb-SHOULD-LOOK-IDENTICAL")
   end
+
+  it 'applies the profile for an image with non-matching colorspace and profile' do
+    image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+    examine_image(image, 'pre-mismatched-colors')
+    described_class.new.apply!(image)
+    examine_image(image, 'post-mismatched-colors')
+  end
+
+  it "strips the image's profile if the profile and colorspace are non-matching" do
+    non_matching_image = Magick::Image.read(test_image_mismatched_colorspace_profile_path).first
+    expect(non_matching_image).to receive(:strip!).and_call_original
+    described_class.new.apply!(non_matching_image)
+  end
 end

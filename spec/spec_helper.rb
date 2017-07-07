@@ -8,7 +8,6 @@ Bundler.require
 
 require 'tmpdir'
 require 'securerandom'
-
 require 'addressable/uri'
 require 'strenv'
 require_relative 'test_server'
@@ -82,6 +81,10 @@ RSpec.configure do | config |
     File.expand_path(__dir__ + '/waterside_magic_hour_adobergb.jpg')
   end
 
+  def test_image_mismatched_colorspace_profile_path
+    File.expand_path(__dir__ + '/worker_in_tube.jpg')
+  end
+  
   def test_image_png_transparency
     File.expand_path(__dir__ + '/waterside_magic_hour_transp.png')
   end
