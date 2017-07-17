@@ -17,6 +17,7 @@ class ImageVise
   @operators = {}
   @allowed_glob_patterns = Set.new
   @fetchers = {}
+  @custom_cache_max_length = Set.new
 
   class << self
     # Resets all allowed hosts
@@ -49,6 +50,14 @@ class ImageVise
 
     def deny_filesystem_sources!
       S_MUTEX.synchronize { @allowed_glob_patterns.clear }
+    end
+
+    def add_custom_cache_max_length!(length)
+      S_MUTEX.synchronize { @custom_cache_max_length << length }
+    end
+
+    def custom_cache_max_length
+      S_MUTEX.synchronize { @custom_cache_max_length.first }
     end
 
     # Adds a key against which the parameters are going to be verified.

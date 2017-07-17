@@ -137,6 +137,22 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(304)
     end
 
+    it 'allows for setting a custom cache max-age' do
+      uri = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      ImageVise.add_custom_cache_max_length!('900')
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      req_path = image_request.to_path_params('l33tness')
+
+      get req_path, {}
+      expect(last_response).to be_ok
+      expect(last_response['Cache-Control']).to match(/max-age=900/)
+    end
+
     it 'responds with an image that passes through all the processing steps' do
       uri = Addressable::URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)

@@ -20,14 +20,6 @@
     'Cache-Control' => 'public, max-age=5'
   }).freeze
 
-  # "public" of course. Add max-age so that there is _some_
-  # revalidation after a time (otherwise some proxies treat it
-  # as "must-revalidate" always), and "no-transform" so that
-  # various deflate schemes are not applied to it (does happen
-  # with Rack::Cache and leads Chrome to throw up on content
-  # decoding for example).
-  IMAGE_CACHE_CONTROL = 'public, no-transform, max-age=2592000'
-
   # How long is a render (the ImageMagick/write part) is allowed to
   # take before we kill it
   RENDER_TIMEOUT_SECONDS = 10
@@ -166,16 +158,25 @@
   # `process_image_request` unsplatted, and returns a triplet that
   # can be returned as a Rack response. The Rack response will contain
   # an iterable body object that is designed to automatically delete
-  # the Tempfile it wraps on close.
+  # the Tempfile it wraps on close. Sets the cache max-age to either the default
+  # value of 2592000 or the value the user selected using add_custom_cache_max_length.
+  # Cache details:  "public" of course. Add max-age so that there is _some_
+  # revalidation after a time (otherwise some proxies treat it
+  # as "must-revalidate" always), and "no-transform" so that
+  # various deflate schemes are not applied to it (does happen
+  # with Rack::Cache and leads Chrome to throw up on content
+  # decoding for example).
   #
   # @param render_destination_file[File] the File handle to the rendered image
   # @param render_file_type[MagicBytes::FileType] the rendered file type
   # @param etag[String] the ETag for the response
   def image_rack_response(render_destination_file, render_file_type, etag)
+    custom_cache = ImageVise.custom_cache_max_length.nil? ? 2592000 : ImageVise.custom_cache_max_length
+
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
       'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => IMAGE_CACHE_CONTROL,
+      'Cache-Control' => "public, no-transform, max-age=#{custom_cache}",
       'ETag' => etag
     })
 
