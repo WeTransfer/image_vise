@@ -142,7 +142,7 @@ describe ImageVise::RenderEngine do
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
-      ImageVise.add_custom_cache_max_length!('900')
+      ImageVise.set_custom_cache_lifetime!('900')
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 

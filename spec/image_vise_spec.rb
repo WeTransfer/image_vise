@@ -3,16 +3,16 @@ require 'rack/test'
 
 describe ImageVise do
   include Rack::Test::Methods
-  
+
   def app
     described_class.new
   end
-  
+
   context 'ImageVise.allowed_hosts' do
     it 'returns the allowed hosts and is empty by default' do
       expect(described_class.allowed_hosts).to be_empty
     end
-    
+
     it 'allows add_allowed_host! and reset_allowed_hosts!' do
       described_class.add_allowed_host!('www.imageboard.im')
       expect(described_class.allowed_hosts).to include('www.imageboard.im')
@@ -20,14 +20,14 @@ describe ImageVise do
       expect(described_class.allowed_hosts).not_to include('www.imageboard.im')
     end
   end
-  
+
   context 'ImageVise.secret_keys' do
     it 'raises when asked for a key and no keys has been set' do
       expect {
         described_class.secret_keys
       }.to raise_error("No keys set, add a key using `ImageVise.add_secret_key!(key)'")
     end
-    
+
     it 'allows add_secret_key!(key) and reset_secret_keys!' do
       described_class.add_secret_key!('l33t')
       expect(described_class.secret_keys).to include('l33t')
@@ -35,6 +35,27 @@ describe ImageVise do
       expect {
         expect(described_class.secret_keys)
       }.to raise_error(/add a key using/)
+    end
+  end
+
+  context 'ImageVise.set_custom_cache_lifetime!' do
+    it 'raises when given something other than an integer' do
+      expect {
+        described_class.set_custom_cache_lifetime!("Who0ps")
+      }.to raise_error("The custom cache lifetime value must be an integer")
+    end
+
+    it 'succeeds when given an integer' do
+      expect {
+        described_class.set_custom_cache_lifetime!("900")
+      }.not_to raise_error
+    end
+  end
+
+  context 'ImageVise.cache_lifetime' do
+    it 'allows set_custom_cache_lifetime!' do
+      described_class.set_custom_cache_lifetime!("100")
+      expect(described_class.cache_lifetime).to eq("100")
     end
   end
 
@@ -51,7 +72,7 @@ describe ImageVise do
       ImageVise.call(:mock_env)
     end
   end
-  
+
   describe '.image_params' do
     it 'generates a Hash with paremeters for processing the resized image' do
       params = ImageVise.image_params(src_url: 'http://host.com/image.jpg', secret: 'l33t') do |pipe|
@@ -69,7 +90,7 @@ describe ImageVise do
       expect(http).to respond_to(:fetch_uri_to_tempfile)
       file = ImageVise.fetcher_for('file')
       expect(http).to respond_to(:fetch_uri_to_tempfile)
-      
+
       expect {
         ImageVise.fetcher_for('undernet')
       }.to raise_error(/No fetcher registered/)
@@ -84,14 +105,14 @@ describe ImageVise do
       expect(path).to start_with('/')
     end
   end
-  
+
   describe 'methods dealing with the operator list' do
     it 'have the basic operators already set up' do
       oplist = ImageVise.defined_operator_names
       expect(oplist).to include('sharpen')
       expect(oplist).to include('crop')
     end
-    
+
     it 'allows an operator to be added and retrieved' do
       class CustomOp; end
       ImageVise.add_operator 'custom_op', CustomOp
@@ -99,7 +120,7 @@ describe ImageVise do
       expect(ImageVise.operator_name_for(CustomOp.new)).to eq('custom_op')
       expect(ImageVise.defined_operator_names).to include('custom_op')
     end
-    
+
     it 'raises an exception when an operator key is requested that does not exist' do
       class UnknownOp; end
       expect {
