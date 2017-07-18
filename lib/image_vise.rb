@@ -11,13 +11,15 @@ class ImageVise
   require_relative 'image_vise/version'
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
+  # If no custom cache lifetime is set we'll use this one.
+  DEFAULT_CACHE_LIFETIME = 2592000
 
   @allowed_hosts = Set.new
   @keys = Set.new
   @operators = {}
   @allowed_glob_patterns = Set.new
   @fetchers = {}
-  @custom_cache_max_length = Set.new
+  @custom_cache_lifetime = DEFAULT_CACHE_LIFETIME
 
   class << self
     # Resets all allowed hosts
@@ -52,12 +54,15 @@ class ImageVise
       S_MUTEX.synchronize { @allowed_glob_patterns.clear }
     end
 
-    def add_custom_cache_max_length!(length)
-      S_MUTEX.synchronize { @custom_cache_max_length << length }
+    def set_custom_cache_lifetime!(length)
+      Integer(length)
+      S_MUTEX.synchronize { @custom_cache_lifetime = length }
+    rescue => e
+      raise ArgumentError, "The custom cache lifetime value must be an integer"
     end
 
-    def custom_cache_max_length
-      S_MUTEX.synchronize { @custom_cache_max_length.first }
+    def cache_lifetime
+      S_MUTEX.synchronize { @custom_cache_lifetime }
     end
 
     # Adds a key against which the parameters are going to be verified.
