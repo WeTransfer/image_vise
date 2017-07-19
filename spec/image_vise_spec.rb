@@ -38,24 +38,31 @@ describe ImageVise do
     end
   end
 
-  context 'ImageVise.set_custom_cache_lifetime!' do
+  context 'ImageVise.cache_lifetime_seconds=' do
     it 'raises when given something other than an integer' do
       expect {
-        described_class.set_custom_cache_lifetime!("Who0ps")
+        described_class.cache_lifetime_seconds = "Wh0ops!"
       }.to raise_error("The custom cache lifetime value must be an integer")
     end
 
     it 'succeeds when given an integer' do
       expect {
-        described_class.set_custom_cache_lifetime!("900")
+        described_class.cache_lifetime_seconds=(900)
       }.not_to raise_error
     end
   end
 
-  context 'ImageVise.cache_lifetime' do
-    it 'allows set_custom_cache_lifetime!' do
-      described_class.set_custom_cache_lifetime!("100")
-      expect(described_class.cache_lifetime).to eq("100")
+  context 'ImageVise.cache_lifetime_seconds' do
+    it 'allows cache_lifetime_seconds to be set' do
+      described_class.cache_lifetime_seconds = 100
+      expect(described_class.cache_lifetime_seconds).to eq(100)
+    end
+
+    it 'allows reset_cache_lifetime_seconds!' do
+      described_class.cache_lifetime_seconds = 100
+      expect(described_class.cache_lifetime_seconds).to eq(100)
+      described_class.reset_cache_lifetime_seconds!
+      expect(described_class.cache_lifetime_seconds).to eq(2592000)
     end
   end
 
