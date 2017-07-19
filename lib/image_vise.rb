@@ -11,7 +11,7 @@ class ImageVise
   require_relative 'image_vise/version'
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
-  # If no custom cache lifetime is set, use this one for 30 days.
+  # The default cache liftime is 30 days, and will be used if no custom lifetime is set.
   DEFAULT_CACHE_LIFETIME = 2_592_000
 
   @allowed_hosts = Set.new
@@ -19,6 +19,7 @@ class ImageVise
   @operators = {}
   @allowed_glob_patterns = Set.new
   @fetchers = {}
+  @cache_lifetime = DEFAULT_CACHE_LIFETIME
 
   class << self
     # Resets all allowed hosts
