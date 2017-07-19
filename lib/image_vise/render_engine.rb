@@ -28,9 +28,6 @@
   # decoding for example).
   IMAGE_CACHE_CONTROL = "public, no-transform, max-age=%d"
 
-  # If no custom cache lifetime is set we'll use this one.
-  DEFAULT_CACHE_LIFETIME = 2592000
-
   # How long is a render (the ImageMagick/write part) is allowed to
   # take before we kill it
   RENDER_TIMEOUT_SECONDS = 10
@@ -179,7 +176,7 @@
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
       'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => IMAGE_CACHE_CONTROL % ImageVise.cache_lifetime,
+      'Cache-Control' => IMAGE_CACHE_CONTROL % ImageVise.cache_lifetime_seconds,
       'ETag' => etag
     })
 
