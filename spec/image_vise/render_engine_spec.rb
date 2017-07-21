@@ -37,6 +37,7 @@ describe ImageVise::RenderEngine do
     after :each do
       ImageVise.reset_allowed_hosts!
       ImageVise.reset_secret_keys!
+      ImageVise.reset_cache_lifetime_seconds!
     end
 
     it 'halts with 400 when the requested image cannot be opened by ImageMagick' do
@@ -135,6 +136,37 @@ describe ImageVise::RenderEngine do
       # that already exists in an upstream cache
       get req_path, {}, {'HTTP_IF_NONE_MATCH' => SecureRandom.hex(4)}
       expect(last_response.status).to eq(304)
+    end
+
+    it 'allows for setting a custom cache lifetime' do
+      uri = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      ImageVise.cache_lifetime_seconds = '900'
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      req_path = image_request.to_path_params('l33tness')
+
+      get req_path, {}
+      expect(last_response).to be_ok
+      expect(last_response['Cache-Control']).to match(/max-age=900/)
+    end
+
+    it 'uses the correct default cache lifetime if one is not specified' do
+      uri = Addressable::URI.parse(public_url)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 35, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      req_path = image_request.to_path_params('l33tness')
+
+      get req_path, {}
+      expect(last_response).to be_ok
+      expect(last_response['Cache-Control']).to match(/max-age=2592000/)
     end
 
     it 'responds with an image that passes through all the processing steps' do

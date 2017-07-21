@@ -11,12 +11,15 @@ class ImageVise
   require_relative 'image_vise/version'
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
+  # The default cache liftime is 30 days, and will be used if no custom lifetime is set.
+  DEFAULT_CACHE_LIFETIME = 2_592_000
 
   @allowed_hosts = Set.new
   @keys = Set.new
   @operators = {}
   @allowed_glob_patterns = Set.new
   @fetchers = {}
+  @cache_lifetime = DEFAULT_CACHE_LIFETIME
 
   class << self
     # Resets all allowed hosts
@@ -49,6 +52,21 @@ class ImageVise
 
     def deny_filesystem_sources!
       S_MUTEX.synchronize { @allowed_glob_patterns.clear }
+    end
+
+    def cache_lifetime_seconds=(length)
+      Integer(length)
+      S_MUTEX.synchronize { @cache_lifetime = length.to_i }
+    rescue => e
+      raise ArgumentError, "The custom cache lifetime value must be an integer"
+    end
+
+    def cache_lifetime_seconds
+      S_MUTEX.synchronize { @cache_lifetime }
+    end
+
+    def reset_cache_lifetime_seconds!
+      S_MUTEX.synchronize { @cache_lifetime = DEFAULT_CACHE_LIFETIME }
     end
 
     # Adds a key against which the parameters are going to be verified.
