@@ -109,9 +109,12 @@
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
     bail(400, 'Query strings are not supported') if rack_request.params.any?
 
-    # Extract the tail (signature) and the front (the Base64-encoded request).
-    # Slashes within :q are masked by ImageRequest already, so we don't have
-    # to worry about them.
+    # Take the last two path components of the request URI.
+    # The second-to-last is the Base64-encoded image request, the last is the signature.
+    # Slashes within the image request are masked out already, no need to worry about them.
+    # Parameters are passed in the path so that ImageVise integrates easier with CDNs and so that
+    # it becomes harder to blow the cache by appending spurious query string parameters and/or
+    # reordering query string parameters at will.
     *, q_from_path, sig_from_path = rack_request.path_info.split('/')
 
     # Raise if any of them are empty or blank
