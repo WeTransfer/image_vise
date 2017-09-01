@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'patron', '~> 0.6'
-  spec.add_dependency 'rmagick', '~> 2.15'
+  spec.add_dependency 'rmagick', '2.16.0'
   spec.add_dependency 'ks'
   spec.add_dependency 'magic_bytes', '~> 1'
   spec.add_dependency 'rack', '~> 1'
