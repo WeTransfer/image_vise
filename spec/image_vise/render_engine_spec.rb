@@ -5,6 +5,13 @@ describe ImageVise::RenderEngine do
   include Rack::Test::Methods
 
   let(:app) { ImageVise::RenderEngine.new }
+  before :each do
+    ImageVise.reset_cache_lifetime_seconds!
+  end
+
+  after :each do
+    ImageVise.reset_cache_lifetime_seconds!
+  end
 
   context 'when the subclass is configured to raise exceptions' do
     after :each do
@@ -37,7 +44,6 @@ describe ImageVise::RenderEngine do
     after :each do
       ImageVise.reset_allowed_hosts!
       ImageVise.reset_secret_keys!
-      ImageVise.reset_cache_lifetime_seconds!
     end
 
     it 'halts with 400 when the requested image cannot be opened by ImageMagick' do
