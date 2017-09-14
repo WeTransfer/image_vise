@@ -9,10 +9,6 @@ describe ImageVise::RenderEngine do
     ImageVise.reset_cache_lifetime_seconds!
   end
 
-  after :each do
-    ImageVise.reset_cache_lifetime_seconds!
-  end
-
   context 'when the subclass is configured to raise exceptions' do
     after :each do
       ImageVise.reset_allowed_hosts!
