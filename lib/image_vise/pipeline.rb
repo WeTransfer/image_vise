@@ -57,8 +57,4 @@ class ImageVise::Pipeline
       operator.apply!(magick_image, image_metadata)
     end
   end
-
-  def each(&b)
-    @ops.each(&b)
-  end
 end
