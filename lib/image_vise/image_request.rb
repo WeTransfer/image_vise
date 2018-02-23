@@ -26,7 +26,7 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
     source_url_str = params.fetch(:src_url).to_s
     raise URLError, "the :src_url parameter must be non-empty" if source_url_str.empty?
     pipeline_definition = params.fetch(:pipeline)
-    new(src_url: URI(source_url_str), pipeline: ImageVise::Pipeline.from_param(pipeline_definition))
+    new(src_url: URI(source_url_str), pipeline: ImageVise::Pipeline.from_array_of_operator_params(pipeline_definition))
   rescue KeyError => e
     raise InvalidRequest.new(e.message)
   end

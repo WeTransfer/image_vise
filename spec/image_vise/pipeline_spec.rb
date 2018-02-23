@@ -12,7 +12,7 @@ describe ImageVise::Pipeline do
       ["auto_orient", {}],
       ["fit_crop", {:width=>10, :height=>32, :gravity=>"c"}]
     ]
-    pipeline = described_class.from_param(params)
+    pipeline = described_class.from_array_of_operator_params(params)
     expect(pipeline).not_to be_empty
   end
 
@@ -29,7 +29,7 @@ describe ImageVise::Pipeline do
       ["fit_crop", {:width=>10, :height=>32, :gravity=>"c"}]
     ])
 
-    pipeline = described_class.from_param(operator_list)
+    pipeline = described_class.from_array_of_operator_params(operator_list)
     expect(pipeline).not_to be_empty
   end
 
