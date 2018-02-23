@@ -196,8 +196,11 @@ describe ImageVise::RenderEngine do
        'cmljb246L0NQR1BfRmlyZWJhbGw-Yz1kOWM4ZTMzO'+
        'TZmNjMwYzM1MjM0MTYwMmM2YzJhYmQyZjAzNTcxMTF'+
        'jIn0'
-      params = {q: q, sig: sig}
-      req = ImageVise::ImageRequest.from_params(qs_params: params, secrets: ['this is fab'])
+      req = ImageVise::ImageRequest.from_params(
+        base64_encoded_params: q,
+        given_signature: sig,
+        secrets: ['this is fab']
+      )
 
       # We do a check based on the raised exception - the request will fail
       # at the fetcher lookup stage. That stage however takes place _after_ the
@@ -216,7 +219,6 @@ describe ImageVise::RenderEngine do
 
       p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
-      params = image_request.to_query_string_params('l33tness')
 
       expect(app).to receive(:parse_env_into_request).and_call_original
       expect(app).to receive(:process_image_request).and_call_original

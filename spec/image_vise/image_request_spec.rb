@@ -6,23 +6,26 @@ describe ImageVise::ImageRequest do
     img_params_json = JSON.dump(img_params)
     
     q = Base64.encode64(img_params_json)
-    signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', q)
-    params = {q: q, sig: signature}
+    sig = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', q)
 
-    image_request = described_class.from_params(qs_params: params, secrets: ['this is a secret'])
-    request_qs_params = image_request.to_query_string_params('this is a secret')
-    expect(request_qs_params).to be_kind_of(Hash)
-
-    image_request_roundtrip = described_class.from_params(qs_params: request_qs_params, secrets: ['this is a secret'])
+    image_request = described_class.from_params(
+      base64_encoded_params: q,
+      given_signature: sig,
+      secrets: ['this is a secret']
+    )
+    expect(image_request).to be_kind_of(described_class)
   end
 
-  it 'converts a file:// URL into a URI objectlist' do
+  it 'converts a file:// URL into a URI object' do
     img_params = {src_url: 'file:///etc/passwd', pipeline: [[:auto_orient, {}]]}
     img_params_json = JSON.dump(img_params)
     q = Base64.encode64(img_params_json)
-    signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', q)
-    params = {q: q, sig: signature}
-    image_request = described_class.from_params(qs_params: params, secrets: ['this is a secret'])
+    sig = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'this is a secret', q)
+    image_request = described_class.from_params(
+      base64_encoded_params: q,
+      given_signature: sig,
+      secrets: ['this is a secret']
+    )
     expect(image_request.src_url).to be_kind_of(URI)
   end
 
@@ -40,7 +43,7 @@ describe ImageVise::ImageRequest do
     (1..12).each do |num_chars_in_url|
       uri = URI('http://ex.com/%s'  % ('i' * num_chars_in_url))
       image_request = described_class.new(src_url: uri, pipeline: parametrized)
-      q = image_request.to_query_string_params('password').fetch(:q)
+      q = image_request.to_path_params('password')
       expect(q).not_to include('=')
     end
   end
@@ -52,10 +55,9 @@ describe ImageVise::ImageRequest do
       img_params_json = JSON.dump(img_params)
       enc = Base64.encode64(img_params_json)
       signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new, 'a', enc)
-      params = {q: enc, sig: signature}
       
       expect {
-        described_class.from_params(qs_params: params, secrets: ['b'])
+        described_class.from_params(base64_encoded_params: enc, given_signature: signature, secrets: ['b'])
       }.to raise_error(/Invalid or missing signature/)
     end
   end

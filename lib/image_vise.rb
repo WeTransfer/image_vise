@@ -83,25 +83,6 @@ class ImageVise
       keys or raise "No keys set, add a key using `ImageVise.add_secret_key!(key)'"
     end
 
-    # Generate a set of querystring params for a resized image. Yields a Pipeline object that
-    # will receive method calls for adding image operations to a stack.
-    #
-    #   ImageVise.image_params(src_url: image_url_on_s3, secret: '...') do |p|
-    #      p.center_fit width: 128, height: 128
-    #      p.elliptic_stencil
-    #   end #=> {q: '...', sig: '...'}
-    #
-    # The query string elements can be then passed on to RenderEngine for validation and execution.
-    #
-    # @yield {ImageVise::Pipeline}
-    # @return [Hash]
-    def image_params(src_url:, secret:)
-      p = Pipeline.new
-      yield(p)
-      raise ArgumentError, "Image pipeline has no steps defined" if p.empty?
-      ImageRequest.new(src_url: URI(src_url), pipeline: p).to_query_string_params(secret)
-    end
-
     # Generate a path for a resized image. Yields a Pipeline object that
     # will receive method calls for adding image operations to a stack.
     #

@@ -80,17 +80,6 @@ describe ImageVise do
     end
   end
 
-  describe '.image_params' do
-    it 'generates a Hash with paremeters for processing the resized image' do
-      params = ImageVise.image_params(src_url: 'http://host.com/image.jpg', secret: 'l33t') do |pipe|
-        pipe.fit_crop width: 128, height: 256, gravity: 'c'
-      end
-      expect(params).to be_kind_of(Hash)
-      expect(params[:q]).not_to be_empty
-      expect(params[:sig]).not_to be_empty
-    end
-  end
-
   describe 'methods dealing with fetchers' do
     it 'returns the fetchers for the default schemes' do
       http = ImageVise.fetcher_for('http')

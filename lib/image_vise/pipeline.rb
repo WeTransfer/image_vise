@@ -3,7 +3,7 @@ class ImageVise::Pipeline
     operator = ImageVise.operator_from(name)  or raise "Unknown operator #{name}"
   end
 
-  def self.from_param(array_of_operator_names_to_operator_params)
+  def self.from_array_of_operator_params(array_of_operator_names_to_operator_params)
     operators = array_of_operator_names_to_operator_params.map do |(operator_name, operator_params)|
       operator_class = operator_by_name(operator_name)
       if operator_params && operator_params.any? && operator_class.method(:new).arity.nonzero?
@@ -56,9 +56,5 @@ class ImageVise::Pipeline
     else
       operator.apply!(magick_image, image_metadata)
     end
-  end
-
-  def each(&b)
-    @ops.each(&b)
   end
 end
