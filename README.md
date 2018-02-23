@@ -7,11 +7,11 @@ framework. The main uses are:
 * Applying image filters
 
 It is implemented as a Rack application that responds to any URL and accepts the following two _last_ path
-compnents, internally named `q` and `sig`:
+compnents, internally named `request` and `signature`:
 
-* `q` - Base64 encoded JSON object with `src_url` and `pipeline` properties
+* `request` - Base64 encoded JSON object with `src_url` and `pipeline` properties
     (the source URL of the image and processing steps to apply)
-* `sig` - the HMAC signature, computed over the JSON in `q` before it gets Base64-encoded
+* `signature` - the HMAC signature, computed over the JSON in `q` before it gets Base64-encoded
 
 A request to `ImageVise` might look like this:
 
@@ -90,11 +90,6 @@ def thumb_url(source_image_url)
   '/images' + path
 end
 ```
-## Path decoding and SCRIPT_NAME
-
-`ImageVise::RenderEngine` _must_ be mounted under a `SCRIPT_NAME` (using either `mount` in Rails
-or using `map` in Rack). That is so since we may have more than 1 path component that we have to
-decode (when the Base64 payload contains slashes).
 
 ## Processing files on the local filesystem instead of remote ones
 

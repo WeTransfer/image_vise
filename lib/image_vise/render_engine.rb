@@ -72,9 +72,13 @@
 
     req = parse_env_into_request(env)
     bail(405, 'Only GET supported') unless req.get?
-    params = extract_params_from_request(req)
+    encoded_request, signature = extract_params_from_request(req)
 
-    image_request = ImageVise::ImageRequest.from_params(qs_params: params, secrets: ImageVise.secret_keys)
+    image_request = ImageVise::ImageRequest.from_params(
+      base64_encoded_params: encoded_request,
+      given_signature: signature,
+      secrets: ImageVise.secret_keys
+    )
     render_destination_file, render_file_type, etag = process_image_request(image_request)
     image_rack_response(render_destination_file, render_file_type, etag)
   rescue *permanent_failures => e
@@ -104,7 +108,7 @@
   # Extracts the image params from the Rack::Request
   #
   # @param rack_request[#path_info] an object that has a path info
-  # @return [Hash] the params hash with `:q` and `:sig` keys
+  # @return [String, String] the Base64-encoded image request and the signature
   def extract_params_from_request(rack_request)
     # Prevent cache bypass DOS attacks by only permitting :sig and :q
     bail(400, 'Query strings are not supported') if rack_request.params.any?
@@ -121,7 +125,7 @@
     nothing_recovered = [q_from_path, sig_from_path].all?{|v| v.nil? || v.empty? }
     bail(400, 'Need 2 usable path components') if nothing_recovered
 
-    {q: q_from_path, sig: sig_from_path}
+    [q_from_path, sig_from_path]
   end
 
   # Processes the ImageRequest object created from the request parameters,
