@@ -79,8 +79,8 @@
       given_signature: signature,
       secrets: ImageVise.secret_keys
     )
-    render_destination_file, render_file_type, etag = process_image_request(image_request)
-    image_rack_response(render_destination_file, render_file_type, etag)
+    render_destination_file, render_file_type, etag, expire_after = process_image_request(image_request)
+    image_rack_response(render_destination_file, render_file_type, etag, expire_after)
   rescue *permanent_failures => e
     handle_request_error(e)
     http_status_code = e.respond_to?(:http_status) ? e.http_status : 400
@@ -157,14 +157,14 @@
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 
     # Do the actual imaging stuff
-    apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
+    expire_after = apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
 
     # Catch this one early
     render_destination_file.rewind
     raise EmptyRender, "The rendered image was empty" if render_destination_file.size.zero?
 
     render_file_type = detect_file_type(render_destination_file)
-    [render_destination_file, render_file_type, etag]
+    [render_destination_file, render_file_type, etag, expire_after]
   ensure
     ImageVise.close_and_unlink(source_file)
   end
@@ -179,11 +179,11 @@
   # @param render_destination_file[File] the File handle to the rendered image
   # @param render_file_type[MagicBytes::FileType] the rendered file type
   # @param etag[String] the ETag for the response
-  def image_rack_response(render_destination_file, render_file_type, etag)
+  def image_rack_response(render_destination_file, render_file_type, etag, expire_after)
     response_headers = DEFAULT_HEADERS.merge({
       'Content-Type' => render_file_type.mime,
       'Content-Length' => '%d' % render_destination_file.size,
-      'Cache-Control' => IMAGE_CACHE_CONTROL % ImageVise.cache_lifetime_seconds,
+      'Cache-Control' => IMAGE_CACHE_CONTROL % expire_after.to_i,
       'ETag' => etag
     })
 
@@ -298,6 +298,9 @@
     # If no operators touched the writer we are going to use the automatic format selection
     writer = metadata.fetch(:writer, ImageVise::AutoWriter.new)
     writer.write_image!(magick_image, metadata, render_to_path)
+
+    # Another metadata element is the expire_after, which we default to an app-wide setting
+    metadata.fetch(:expire_after_seconds, ImageVise.cache_lifetime_seconds)
   ensure
     # destroy all the loaded images explicitly
     (image_list || []).map {|img| ImageVise.destroy(img) }
