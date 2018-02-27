@@ -353,6 +353,19 @@ describe ImageVise::RenderEngine do
       examine_image_from_string(last_response.body)
     end
 
+    it 'sets a customized Expires: cache lifetime set via the pipeline' do
+      uri = Addressable::URI.parse(public_url_psd)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('1337ness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: 'x220').expire_after(seconds: 20)
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      get image_request.to_path_params('1337ness')
+
+      expect(last_response.headers['Cache-Control']).to eq("public, no-transform, max-age=20")
+    end
+
     it 'converts a PNG into a JPG applying a background fill' do
       uri = Addressable::URI.parse(public_url_png_transparency)
       ImageVise.add_allowed_host!(uri.host)
