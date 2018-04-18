@@ -14,9 +14,11 @@ class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
 
     # Check the signature before decoding JSON (since we will be creating symbols)
     unless valid_signature?(base64_encoded_params, given_signature, secrets)
-      ImageVise::Measurometer.increment_counter('image_vise.params.invalid_signatures')
+      ImageVise::Measurometer.increment_counter('image_vise.params.invalid_signatures', 1)
       raise SignatureError, "Invalid or missing signature"
     end
+
+    ImageVise::Measurometer.increment_counter('image_vise.params.valid_signatures', 1)
 
     # Decode the JSON - only AFTER the signature has been validated,
     # so we can use symbol keys
