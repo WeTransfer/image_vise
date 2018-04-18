@@ -1,12 +1,13 @@
 rvm:
-- 2.2
-- 2.3.0
-- 2.4.1
+- 2.2.10
+- 2.3.7
+- 2.4.4
+- 2.5.1
 sudo: false
 cache: bundler
 
 env:
   global:
     - SKIP_INTERACTIVE=yes
-
+before_install: gem install bundler
 script: bundle exec rspec
