@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+  spec.required_ruby_version = '>= 2.2.10'
 
   spec.add_dependency 'patron', '~> 0.6'
   spec.add_dependency 'rmagick', '~> 2.15'
