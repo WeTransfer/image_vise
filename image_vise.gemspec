@@ -22,20 +22,10 @@ Gem::Specification.new do |spec|
     raise "RubyGems 2.0 or newer is required to protect against public gem pushes."
   end
   
-  # Inform users about the new ruby version requirement
-  spec.post_install_message = %q{
-    -----------------------------------------------------------------------------
-    | INFO: image_vise **v0.4.1** will now require ruby v2.2.10 and up due to a |
-    | CVE reported in older ruby versions (CVE-2018-6914). We recommend using   |
-    | a patched version of ruby, e.g. 2.2.10, 2.3.7, 2.4.4, or 2.5.1.           |
-    -----------------------------------------------------------------------------
-  }
-
   spec.files         = `git ls-files -z`.split("\x0")
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.required_ruby_version = '>= 2.2.10'
 
   spec.add_dependency 'patron', '~> 0.6'
   spec.add_dependency 'rmagick', '~> 2.15'
