@@ -283,7 +283,10 @@
     render_file_type = source_file_type
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
-    image_list = Magick::Image.read(source_file_path)
+    image_list = ImageVise::Measurometer.instrument('image_vise.load_pixbuf') do
+      Magick::Image.read(source_file_path)
+    end
+      
     magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
 
     # If any operators want to stash some data for downstream use we use this Hash
@@ -297,7 +300,9 @@
     # it so that we get a KeyError if some operator has deleted it without providing a replacement.
     # If no operators touched the writer we are going to use the automatic format selection
     writer = metadata.fetch(:writer, ImageVise::AutoWriter.new)
-    writer.write_image!(magick_image, metadata, render_to_path)
+    ImageVise::Measurometer.instrument('image_vise.write_image') do
+      writer.write_image!(magick_image, metadata, render_to_path)
+    end
 
     # Another metadata element is the expire_after, which we default to an app-wide setting
     metadata.fetch(:expire_after_seconds, ImageVise.cache_lifetime_seconds)

@@ -9,8 +9,10 @@ require 'rack'
 
 class ImageVise
   require_relative 'image_vise/version'
+
   S_MUTEX = Mutex.new
   private_constant :S_MUTEX
+
   # The default cache liftime is 30 days, and will be used if no custom lifetime is set.
   DEFAULT_CACHE_LIFETIME = 2_592_000
 
@@ -158,7 +160,9 @@ class ImageVise
     return unless maybe_image
     return unless maybe_image.respond_to?(:destroy!)
     return if maybe_image.destroyed?
-    maybe_image.destroy!
+    ImageVise::Measurometer.instrument('image_vise.image_destroy_dealloc') do
+      maybe_image.destroy!
+    end
   end
 
   # Used as a shorthand to force-dealloc Tempfiles in an ensure() blocks. Since
@@ -166,8 +170,10 @@ class ImageVise
   # in scope but not yet set to an image) we take the possibility of nils into account.
   def self.close_and_unlink(maybe_tempfile)
     return unless maybe_tempfile
-    maybe_tempfile.close unless maybe_tempfile.closed?
-    maybe_tempfile.unlink
+    ImageVise::Measurometer.instrument('image_vise.tempfile_unlink') do
+      maybe_tempfile.close unless maybe_tempfile.closed?
+      maybe_tempfile.unlink
+    end
   end
 end
 
