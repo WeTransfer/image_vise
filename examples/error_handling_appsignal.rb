@@ -1,7 +1,7 @@
 # Anywhere in your app code
 module ImageViseAppsignal
   ImageVise::RenderEngine.prepend self
-
+  ImageVise::Measurometer.drivers << Appsignal # to obtain ImageVise instrumentation
   def setup_error_handling(rack_env)
     txn = Appsignal::Transaction.current
     txn.set_action('%s#%s' % [self.class, 'call'])
