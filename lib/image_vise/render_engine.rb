@@ -157,7 +157,9 @@
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 
     # Do the actual imaging stuff
-    expire_after = apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
+    expire_after = ImageVise::Measurometer.instrument('image_vise.render_engine.apply_pipeline') do
+      apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
+    end
 
     # Catch this one early
     render_destination_file.rewind
