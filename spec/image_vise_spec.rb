@@ -102,6 +102,39 @@ describe ImageVise do
     end
   end
 
+  describe '.close_and_unlink' do
+    it 'closes and unlinks a Tempfile' do
+      tf = Tempfile.new
+      tf << "foo"
+      expect(tf).to receive(:close).and_call_original
+      expect(tf).to receive(:unlink).and_call_original
+
+      ImageVise.close_and_unlink(tf)
+
+      expect(tf).to be_closed
+    end
+
+    it 'unlinks a closed Tempfile' do
+      tf = Tempfile.new
+      tf << "foo"
+      tf.close
+      expect(tf).to receive(:unlink).and_call_original
+
+      ImageVise.close_and_unlink(tf)
+    end
+
+    it 'works on a nil since it gets used in ensure blocks, where the variable might be empty' do
+      ImageVise.close_and_unlink(nil) # Should not raise anything
+    end
+
+    it 'works for a StringIO which does not have unlink' do
+      sio = StringIO.new('some gunk')
+      expect(sio).not_to be_closed
+      ImageVise.close_and_unlink(sio)
+      expect(sio).to be_closed
+    end
+  end
+
   describe 'methods dealing with the operator list' do
     it 'have the basic operators already set up' do
       oplist = ImageVise.defined_operator_names

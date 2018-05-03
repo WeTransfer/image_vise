@@ -173,7 +173,7 @@ class ImageVise
     return unless maybe_tempfile
     ImageVise::Measurometer.instrument('image_vise.tempfile_unlink') do
       maybe_tempfile.close unless maybe_tempfile.closed?
-      maybe_tempfile.unlink
+      maybe_tempfile.unlink if maybe_tempfile.respond_to?(:unlink)
     end
   end
 end
