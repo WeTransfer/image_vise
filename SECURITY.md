@@ -31,9 +31,9 @@ CDN cache because the query string params contain extra data.
 
 ## Protection for remote URLs from HTTP(s) origins
 
-Only URLs referring to permitted hosts are going to be permitted for fetching. If there are no hosts added,
+Only URLs on whitelisted hosts are going to be fetched. If there are no hosts added,
 any remote URL is going to cause an exception. No special verification for whether the upstream must be HTTP
-or HTTPS is performed at this time.
+or HTTPS is performed at this time, but HTTPS upstreams' SSL certificats _will_ be verified.
 
 ## Protection for "file:/" URLs
 
