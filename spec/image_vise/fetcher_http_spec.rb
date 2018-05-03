@@ -31,6 +31,21 @@ describe ImageVise::FetcherHTTP do
     }
   end
 
+  it 'raises an error if the image exceeds the maximum permitted size' do
+    uri = URI(public_url_psd)
+    ImageVise.add_allowed_host! 'localhost'
+    expect(ImageVise::FetcherHTTP).to receive(:maximum_response_size_bytes).and_return(10)
+
+    expect {
+      ImageVise::FetcherHTTP.fetch_uri_to_tempfile(uri)
+    }.to raise_error {|e|
+      expect(e).to be_kind_of(ImageVise::FetcherHTTP::UpstreamError)
+      expect(e.message).to include(uri.to_s)
+      expect(e.message).to match(/is too large to load/)
+      expect(e.http_status).to eq(400)
+    }
+  end
+
   it 'fetches the image into a Tempfile' do
     uri = URI(public_url_psd)
     ImageVise.add_allowed_host! 'localhost'
