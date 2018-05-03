@@ -16,10 +16,6 @@ class ImageVise::FetcherFile
     raise e
   end
 
-  def self.format_parser_detect(uri)
-    FormatParser.parse_file_at(uri_to_path(uri), natures: [:image])
-  end
-
   def self.uri_to_path(uri)
     File.expand_path(URI.decode(uri.path))
   end

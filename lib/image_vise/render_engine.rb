@@ -152,16 +152,12 @@
 
     # Download/copy the original into a Tempfile
     fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
-    file_format = ImageVise::Measurometer.instrument('image_vise.format_detect') do
-      fetcher.format_parser_detect(source_image_uri)
-    end
-
-    raise UnsupportedInputFormat.new("%s has an unknown input file format" % source_image_uri) unless file_format
-    raise UnsupportedInputFormat.new("%s does not pass file constraints") unless permitted_format?(file_format)
-
-    source_file = ImageVise::Measurometer.instrument('image_vise.image_fetch') do
+    source_file = ImageVise::Measurometer.instrument('image_vise.fetch') do
       fetcher.fetch_uri_to_tempfile(source_image_uri)
     end
+    file_format = FormatParser.parse(source_file, natures: [:image]).tap { source_file.rewind }
+    raise UnsupportedInputFormat.new("%s has an unknown input file format" % source_image_uri) unless file_format
+    raise UnsupportedInputFormat.new("%s does not pass file constraints" % source_image_uri) unless permitted_format?(file_format)
 
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 

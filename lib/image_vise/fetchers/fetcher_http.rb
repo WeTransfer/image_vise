@@ -32,14 +32,6 @@ class ImageVise::FetcherHTTP
     raise e
   end
 
-  def self.format_parser_detect(uri)
-    verify_uri_access!(uri)
-    FormatParser.parse_http(uri, natures: [:image])
-  rescue => e
-    code = e.respond_to?(:status_code) ? e.status_code : 400
-    raise UpstreamError.new(code, "Format detection failed for #{uri} - #{e.message}")
-  end
-
   def self.verify_uri_access!(uri)
     host = uri.host
     return if ImageVise.allowed_hosts.include?(uri.host)
