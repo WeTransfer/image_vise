@@ -17,6 +17,10 @@ class ImageVise
   # The default cache liftime is 30 days, and will be used if no custom lifetime is set.
   DEFAULT_CACHE_LIFETIME = 2_592_000
 
+  # The default limit on how large may a file loaded for processing be, in bytes. This
+  # is in addition to the constraints on the file format.
+  DEFAULT_MAXIMUM_SOURCE_FILE_SIZE = 48 * 1024 * 1024
+
   @allowed_hosts = Set.new
   @keys = Set.new
   @operators = {}

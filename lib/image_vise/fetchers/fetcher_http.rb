@@ -1,6 +1,5 @@
 class ImageVise::FetcherHTTP
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 5
-  MAXIMUM_SOURCE_FILE_SIZE = 20 * 1024 * 1024
 
   class AccessError < StandardError; end
 
@@ -17,10 +16,7 @@ class ImageVise::FetcherHTTP
     verify_uri_access!(uri)
 
     s = Patron::Session.new
-    s.automatic_content_encoding = true
-    s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    s.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
-    s.download_byte_limit = maximum_response_size_bytes
+    configure_patron_session!(s)
     response = s.get_file(uri.to_s, tf.path)
 
     if response.status != 200
@@ -37,7 +33,14 @@ class ImageVise::FetcherHTTP
   end
 
   def self.maximum_response_size_bytes
-    MAXIMUM_SOURCE_FILE_SIZE
+    ImageVise::DEFAULT_MAXIMUM_SOURCE_FILE_SIZE
+  end
+
+  def self.configure_patron_session!(session)
+    session.automatic_content_encoding = true
+    session.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
+    session.connect_timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
+    session.download_byte_limit = maximum_response_size_bytes
   end
 
   def self.verify_uri_access!(uri)
