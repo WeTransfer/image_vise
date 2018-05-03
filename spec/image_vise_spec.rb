@@ -104,7 +104,7 @@ describe ImageVise do
 
   describe '.close_and_unlink' do
     it 'closes and unlinks a Tempfile' do
-      tf = Tempfile.new
+      tf = Tempfile.new('x')
       tf << "foo"
       expect(tf).to receive(:close).and_call_original
       expect(tf).to receive(:unlink).and_call_original
@@ -115,7 +115,7 @@ describe ImageVise do
     end
 
     it 'unlinks a closed Tempfile' do
-      tf = Tempfile.new
+      tf = Tempfile.new('x')
       tf << "foo"
       tf.close
       expect(tf).to receive(:unlink).and_call_original
