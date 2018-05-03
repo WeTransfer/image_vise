@@ -140,7 +140,7 @@
   # representing the processing pipeline
   #
   # @param image_request[ImageVise::ImageRequest] the request for the image
-  # @return [Array<File, MagicBytes::FileType, String]
+  # @return [Array<File, FileType, String]
   def process_image_request(image_request)
     # Recover the source image URL and the pipeline instructions (all the image ops)
     source_image_uri, pipeline = image_request.src_url, image_request.pipeline
