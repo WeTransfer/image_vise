@@ -51,13 +51,18 @@ describe ImageVise::RenderEngine do
       p = ImageVise::Pipeline.new.crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
 
+      # Pretend that format detection works fine but the actual image is corrupted
+      expect(FormatParser).to receive(:parse_http).and_return(double(format: :jpg, has_multiple_frames: false))
+
+      bad_data = 'totally not an image'
       expect_any_instance_of(Patron::Session).to receive(:get_file) {|_self, url, path|
-        File.open(path, 'wb') {|f| f << 'totally not an image' }
+        File.open(path, 'wb') {|f| f << bad_data }
         double(status: 200)
       }
       expect(app).to receive(:handle_request_error).and_call_original
 
       get image_request.to_path_params('l33tness')
+      $stderr.puts last_response.body
       expect(last_response.status).to eq(400)
       expect(last_response['Cache-Control']).to match(/public/)
       expect(last_response.body).to include('Unsupported/unknown')
@@ -224,7 +229,7 @@ describe ImageVise::RenderEngine do
       expect(app).to receive(:process_image_request).and_call_original
       expect(app).to receive(:extract_params_from_request).and_call_original
       expect(app).to receive(:image_rack_response).and_call_original
-      expect(app).to receive(:source_file_type_permitted?).and_call_original
+      expect(app).to receive(:permitted_format?).and_call_original
 
       get image_request.to_path_params('l33tness')
       expect(last_response.status).to eq(200)

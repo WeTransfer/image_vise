@@ -2,11 +2,11 @@ class ImageVise::FetcherFile
   class AccessError < StandardError
     def http_status; 403; end
   end
+
   def self.fetch_uri_to_tempfile(uri)
     tf = Tempfile.new 'imagevise-localfs-copy'
-    real_path_on_filesystem = File.expand_path(URI.decode(uri.path))
-    verify_filesystem_access! real_path_on_filesystem
-    # Do the checks
+    real_path_on_filesystem = uri_to_path(uri)
+    verify_filesystem_access!(real_path_on_filesystem)
     File.open(real_path_on_filesystem, 'rb') do |f|
       IO.copy_stream(f, tf)
     end
@@ -14,6 +14,14 @@ class ImageVise::FetcherFile
   rescue Exception => e
     ImageVise.close_and_unlink(tf)
     raise e
+  end
+
+  def self.format_parser_detect(uri)
+    FormatParser.parse_file_at(uri_to_path(uri), natures: [:image])
+  end
+
+  def self.uri_to_path(uri)
+    File.expand_path(URI.decode(uri.path))
   end
 
   def self.verify_filesystem_access!(path_on_filesystem)

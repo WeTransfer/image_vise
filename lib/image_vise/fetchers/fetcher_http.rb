@@ -14,6 +14,7 @@ class ImageVise::FetcherHTTP
   def self.fetch_uri_to_tempfile(uri)
     tf = Tempfile.new 'imagevise-http-download'
     verify_uri_access!(uri)
+
     s = Patron::Session.new
     s.automatic_content_encoding = true
     s.timeout = EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS
@@ -30,7 +31,15 @@ class ImageVise::FetcherHTTP
     ImageVise.close_and_unlink(tf)
     raise e
   end
-  
+
+  def self.format_parser_detect(uri)
+    verify_uri_access!(uri)
+    FormatParser.parse_http(uri, natures: [:image])
+  rescue => e
+    code = e.respond_to?(:status_code) ? e.status_code : 400
+    raise UpstreamError.new(code, "Format detection failed for #{uri} - #{e.message}")
+  end
+
   def self.verify_uri_access!(uri)
     host = uri.host
     return if ImageVise.allowed_hosts.include?(uri.host)

@@ -2,6 +2,16 @@
   class UnsupportedInputFormat < StandardError; end
   class EmptyRender < StandardError; end
 
+  class Filetype < Struct.new(:format_parser_format)
+    def mime
+      Rack::Mime.mime_type(ext)
+    end
+    
+    def ext
+      ".#{format_parser_format}"
+    end
+  end
+
   DEFAULT_HEADERS = {
     'Allow' => "GET"
   }.freeze
@@ -28,12 +38,8 @@
   # decoding for example).
   IMAGE_CACHE_CONTROL = "public, no-transform, max-age=%d"
 
-  # How long is a render (the ImageMagick/write part) is allowed to
-  # take before we kill it
-  RENDER_TIMEOUT_SECONDS = 10
-
-  # Which input files we permit (based on extensions stored in MagicBytes)
-  PERMITTED_SOURCE_FILE_EXTENSIONS = %w( gif png jpg psd tif)
+  # Which input files we permit (based on format identifiers in format_parser, which are symbols)
+  PERMITTED_SOURCE_FORMATS = [:bmp, :tif, :jpg, :psd, :gif, :png]
 
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
@@ -85,7 +91,7 @@
     handle_request_error(e)
     http_status_code = e.respond_to?(:http_status) ? e.http_status : 400
     raise_exception_or_error_response(e, http_status_code)
-  rescue Exception => e
+  rescue => e
     if http_status_code = (e.respond_to?(:http_status) && e.http_status)
       handle_request_error(e)
       raise_exception_or_error_response(e, http_status_code)
@@ -146,19 +152,22 @@
 
     # Download/copy the original into a Tempfile
     fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
-    source_file = fetcher.fetch_uri_to_tempfile(source_image_uri)
+    file_format = ImageVise::Measurometer.instrument('image_vise.format_detect') do
+      fetcher.format_parser_detect(source_image_uri)
+    end
 
-    # Make sure we do not try to process something...questionable
-    source_file_type = detect_file_type(source_file)
-    unless source_file_type_permitted?(source_file_type)
-      raise UnsupportedInputFormat.new("Unsupported/unknown input file format .%s" % source_file_type.ext)
+    raise UnsupportedInputFormat.new("%s has an unknown input file format" % source_image_uri) unless file_format
+    raise UnsupportedInputFormat.new("%s does not pass file constraints") unless permitted_format?(file_format)
+
+    source_file = ImageVise::Measurometer.instrument('image_vise.image_fetch') do
+      fetcher.fetch_uri_to_tempfile(source_image_uri)
     end
 
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 
     # Do the actual imaging stuff
     expire_after = ImageVise::Measurometer.instrument('image_vise.render_engine.apply_pipeline') do
-      apply_pipeline(source_file.path, pipeline, source_file_type, render_destination_file.path)
+      apply_pipeline(source_file.path, pipeline, file_format, render_destination_file.path)
     end
 
     # Catch this one early
@@ -166,6 +175,7 @@
     raise EmptyRender, "The rendered image was empty" if render_destination_file.size.zero?
 
     render_file_type = detect_file_type(render_destination_file)
+
     [render_destination_file, render_file_type, etag, expire_after]
   ensure
     ImageVise.close_and_unlink(source_file)
@@ -212,18 +222,23 @@
   # the MIME type.
   #
   # @param tempfile[File] the file to perform detection on
-  # @return [MagicBytes::FileType] the detected file type
+  # @return [Symbol] the detected file format symbol that can be used as an extension
   def detect_file_type(tempfile)
     tempfile.rewind
-    MagicBytes.read_and_detect(tempfile).tap { tempfile.rewind }
+    parser_result = FormatParser.parse(tempfile, natures: :image).tap { tempfile.rewind }
+    raise "Rendered file type detection failed" unless parser_result
+    Filetype.new(parser_result.format)
   end
 
-  # Tells whether the given file type may be loaded into the image processor.
+  # Tells whether the file described by the given FormatParser result object
+  # can be accepted for processing
   #
-  # @param magic_bytes_file_info[MagicBytes::FileType] the filetype
+  # @param format_parser_result[FormatParser::Image] file information descriptor
   # @return [Boolean]
-  def source_file_type_permitted?(magic_bytes_file_info)
-    PERMITTED_SOURCE_FILE_EXTENSIONS.include?(magic_bytes_file_info.ext)
+  def permitted_format?(format_parser_result)
+    return false unless PERMITTED_SOURCE_FORMATS.include?(format_parser_result.format)
+    return false if format_parser_result.has_multiple_frames
+    true
   end
 
   # Lists exceptions that should lead to the request being flagged
@@ -281,8 +296,7 @@
   # @param pipeline[#apply!(Magick::Image)] the processing pipeline
   # @param render_to_path[String] the path to write the rendered image to
   # @return [void]
-  def apply_pipeline(source_file_path, pipeline, source_file_type, render_to_path)
-    render_file_type = source_file_type
+  def apply_pipeline(source_file_path, pipeline, source_format_parser_result, render_to_path)
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = ImageVise::Measurometer.instrument('image_vise.load_pixbuf') do
@@ -292,7 +306,7 @@
     magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
 
     # If any operators want to stash some data for downstream use we use this Hash
-    metadata = {}
+    metadata = {format_parser_result: source_format_parser_result}
 
     # Apply the pipeline (all the image operators)
     pipeline.apply!(magick_image, metadata)

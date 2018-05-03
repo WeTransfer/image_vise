@@ -6,6 +6,7 @@ require 'magic_bytes'
 require 'thread'
 require 'base64'
 require 'rack'
+require 'format_parser'
 
 class ImageVise
   require_relative 'image_vise/version'
