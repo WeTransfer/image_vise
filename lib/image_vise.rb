@@ -6,6 +6,7 @@ require 'magic_bytes'
 require 'thread'
 require 'base64'
 require 'rack'
+require 'format_parser'
 
 class ImageVise
   require_relative 'image_vise/version'
@@ -15,6 +16,10 @@ class ImageVise
 
   # The default cache liftime is 30 days, and will be used if no custom lifetime is set.
   DEFAULT_CACHE_LIFETIME = 2_592_000
+
+  # The default limit on how large may a file loaded for processing be, in bytes. This
+  # is in addition to the constraints on the file format.
+  DEFAULT_MAXIMUM_SOURCE_FILE_SIZE = 48 * 1024 * 1024
 
   @allowed_hosts = Set.new
   @keys = Set.new
@@ -172,7 +177,7 @@ class ImageVise
     return unless maybe_tempfile
     ImageVise::Measurometer.instrument('image_vise.tempfile_unlink') do
       maybe_tempfile.close unless maybe_tempfile.closed?
-      maybe_tempfile.unlink
+      maybe_tempfile.unlink if maybe_tempfile.respond_to?(:unlink)
     end
   end
 end

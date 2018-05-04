@@ -32,7 +32,7 @@ describe ImageVise::FetcherFile do
       ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
     }.to raise_error(ImageVise::FetcherFile::AccessError)
   end
-  
+
   it 'raises a meaningful exception if this file is not permitted as source' do
     path = File.expand_path(__FILE__)
 
@@ -44,5 +44,22 @@ describe ImageVise::FetcherFile do
     expect {
       ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
     }.to raise_error(ImageVise::FetcherFile::AccessError)
+  end
+
+  it 'raises a meaningful exception if the image exceeds the maximum permitted size' do
+    path = File.expand_path(__FILE__)
+    ruby_files_in_this_directory = __dir__ + '/*.rb'
+    ImageVise.allow_filesystem_source! ruby_files_in_this_directory
+
+    uri = URI('file://' + URI.encode(path))
+    expect(ImageVise::FetcherFile).to receive(:maximum_source_file_size_bytes).and_return(1)
+
+    expect {
+      ImageVise::FetcherFile.fetch_uri_to_tempfile(uri)
+    }.to raise_error {|e|
+      expect(e).to be_kind_of(ImageVise::FetcherFile::AccessError)
+      expect(e.message).to match(/is too large to process/)
+      expect(e.http_status).to eq(400)
+    }
   end
 end
