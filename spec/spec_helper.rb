@@ -11,6 +11,7 @@ require 'securerandom'
 require 'addressable/uri'
 require 'strenv'
 require 'pry'
+require 'magic_bytes'
 require_relative 'test_server'
 
 TEST_RENDERS_DIR = Dir.mktmpdir
