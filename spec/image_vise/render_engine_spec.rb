@@ -187,6 +187,26 @@ describe ImageVise::RenderEngine do
       expect(parsed_image.columns).to eq(10)
     end
 
+    it 'hints ImageMagick that we are loading a CR2 file' do
+      uri = Addressable::URI.parse(public_url)
+      uri.path = '/_MG_8591.CR2'
+
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      get image_request.to_path_params('l33tness')
+      raise last_response.body
+      expect(last_response.status).to eq(200)
+
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+      expect(last_response.headers).to have_key('Content-Length')
+      parsed_image = Magick::Image.from_blob(last_response.body)[0]
+      expect(parsed_image.columns).to eq(10)
+    end
+
     it 'properly decodes the image request if its Base64 representation contains masked slashes and plus characters' do
       ImageVise.add_secret_key!("this is fab")
       sig = '64759d9ea610d75d9138bfa3ea01595d343ca8994261ae06fca8e6490222f140'

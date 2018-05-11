@@ -39,7 +39,7 @@
   IMAGE_CACHE_CONTROL = "public, no-transform, max-age=%d"
 
   # Which input files we permit (based on format identifiers in format_parser, which are symbols)
-  PERMITTED_SOURCE_FORMATS = [:bmp, :tif, :jpg, :psd, :gif, :png]
+  PERMITTED_SOURCE_FORMATS = [:cr2, :bmp, :tif, :jpg, :psd, :gif, :png]
 
   # How long should we wait when fetching the image from the external host
   EXTERNAL_IMAGE_FETCH_TIMEOUT_SECONDS = 4
@@ -296,7 +296,8 @@
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = ImageVise::Measurometer.instrument('image_vise.load_pixbuf') do
-      Magick::Image.read(source_file_path)
+      hinted_path = "#{source_format_parser_result.format}:#{source_file_path}"
+      Magick::Image.read(hinted_path)
     end
       
     magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
