@@ -152,7 +152,7 @@
 
     # Download/copy the original into a Tempfile
     fetcher = ImageVise.fetcher_for(source_image_uri.scheme)
-    source_file = ImageVise::Measurometer.instrument('image_vise.fetch') do
+    source_file = Measurometer.instrument('image_vise.fetch') do
       fetcher.fetch_uri_to_tempfile(source_image_uri)
     end
     file_format = FormatParser.parse(source_file, natures: [:image]).tap { source_file.rewind }
@@ -162,7 +162,7 @@
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
 
     # Do the actual imaging stuff
-    expire_after = ImageVise::Measurometer.instrument('image_vise.render_engine.apply_pipeline') do
+    expire_after = Measurometer.instrument('image_vise.render_engine.apply_pipeline') do
       apply_pipeline(source_file.path, pipeline, file_format, render_destination_file.path)
     end
 
@@ -295,7 +295,7 @@
   def apply_pipeline(source_file_path, pipeline, source_format_parser_result, render_to_path)
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
-    image_list = ImageVise::Measurometer.instrument('image_vise.load_pixbuf') do
+    image_list = Measurometer.instrument('image_vise.load_pixbuf') do
       Magick::Image.read(source_file_path)
     end
       
@@ -312,7 +312,7 @@
     # it so that we get a KeyError if some operator has deleted it without providing a replacement.
     # If no operators touched the writer we are going to use the automatic format selection
     writer = metadata.fetch(:writer, ImageVise::AutoWriter.new)
-    ImageVise::Measurometer.instrument('image_vise.write_image') do
+    Measurometer.instrument('image_vise.write_image') do
       writer.write_image!(magick_image, metadata, render_to_path)
     end
 

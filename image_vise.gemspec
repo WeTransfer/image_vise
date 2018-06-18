@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'ks'
   spec.add_dependency 'rack', '>= 1', '< 3'
   spec.add_dependency 'format_parser', '>= 0.12.1', '< 1.0'
+  spec.add_dependency 'measurometer', '~> 1'
 
   spec.add_development_dependency 'magic_bytes', '~> 1'
   spec.add_development_dependency "bundler", "~> 1.7"
