@@ -5,6 +5,7 @@ require 'rmagick'
 require 'thread'
 require 'base64'
 require 'rack'
+require 'measurometer'
 require 'format_parser'
 
 class ImageVise
@@ -26,7 +27,9 @@ class ImageVise
   @allowed_glob_patterns = Set.new
   @fetchers = {}
   @cache_lifetime = DEFAULT_CACHE_LIFETIME
-
+  
+  const_set(:Measurometer, ::Measurometer)
+  
   class << self
     # Resets all allowed hosts
     def reset_allowed_hosts!
@@ -164,7 +167,7 @@ class ImageVise
     return unless maybe_image
     return unless maybe_image.respond_to?(:destroy!)
     return if maybe_image.destroyed?
-    ImageVise::Measurometer.instrument('image_vise.image_destroy_dealloc') do
+    Measurometer.instrument('image_vise.image_destroy_dealloc') do
       maybe_image.destroy!
     end
   end
@@ -174,7 +177,7 @@ class ImageVise
   # in scope but not yet set to an image) we take the possibility of nils into account.
   def self.close_and_unlink(maybe_tempfile)
     return unless maybe_tempfile
-    ImageVise::Measurometer.instrument('image_vise.tempfile_unlink') do
+    Measurometer.instrument('image_vise.tempfile_unlink') do
       maybe_tempfile.close unless maybe_tempfile.closed?
       maybe_tempfile.unlink if maybe_tempfile.respond_to?(:unlink)
     end

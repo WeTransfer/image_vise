@@ -47,7 +47,7 @@ class ImageVise::Pipeline
   def apply!(magick_image, image_metadata)
     @ops.each do |operator|
       operator_short_classname = operator.class.to_s.split('::').pop
-      ImageVise::Measurometer.instrument('image_vise.op.%s' % operator_short_classname) do
+      Measurometer.instrument('image_vise.op.%s' % operator_short_classname) do
         apply_operator_passing_metadata(magick_image, operator, image_metadata)
       end
     end
