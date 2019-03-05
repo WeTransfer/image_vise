@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'measurometer', '~> 1'
 
   spec.add_development_dependency 'magic_bytes', '~> 1'
-  spec.add_development_dependency "bundler", "~> 1.7"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", "~> 12.2"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rspec", "~> 3"
