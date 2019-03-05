@@ -5,9 +5,7 @@ rvm:
 - 2.5.1
 sudo: false
 cache: bundler
-
 env:
   global:
     - SKIP_INTERACTIVE=yes
-before_install: gem install bundler
 script: bundle exec rspec
