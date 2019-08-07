@@ -13,7 +13,8 @@
   end
 
   DEFAULT_HEADERS = {
-    'Allow' => "GET"
+    'Allow' => 'GET',
+    'X-Content-Type-Options' => 'nosniff',
   }.freeze
 
   # Headers for error responses that denote an invalid or

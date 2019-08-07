@@ -110,6 +110,8 @@ describe ImageVise::RenderEngine do
         expect(last_response.headers['Cache-Control']).to match(/public/)
 
         expect(last_response.headers['Content-Type']).to eq('application/json')
+        expect(last_response['X-Content-Type-Options']).to eq('nosniff')
+
         parsed = JSON.load(last_response.body)
         expect(parsed['errors'].to_s).to include("Unfortunate upstream response")
       end
@@ -182,6 +184,8 @@ describe ImageVise::RenderEngine do
       expect(last_response.status).to eq(200)
 
       expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+      expect(last_response['X-Content-Type-Options']).to eq('nosniff')
+
       expect(last_response.headers).to have_key('Content-Length')
       parsed_image = Magick::Image.from_blob(last_response.body)[0]
       expect(parsed_image.columns).to eq(10)
