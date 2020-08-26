@@ -111,6 +111,10 @@ RSpec.configure do | config |
     'http://localhost:9001/waterside_magic_hour_transp.png'
   end
 
+  def public_url_arw
+    'http://localhost:9001/example.arw'
+  end
+
   config.around :each do |e|
     STRICT_ENV.with_protected_env { e.run }
   end

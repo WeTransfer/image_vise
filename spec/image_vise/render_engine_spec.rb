@@ -384,5 +384,28 @@ describe ImageVise::RenderEngine do
 
       examine_image_from_string(last_response.body)
     end
+    it 'calls all of the internal methods during execution for arw' do
+      uri = Addressable::URI.parse(public_url_arw)
+      ImageVise.add_allowed_host!(uri.host)
+      ImageVise.add_secret_key!('l33tness')
+
+      p = ImageVise::Pipeline.new.geom(geometry_string: '512x335').fit_crop(width: 10, height: 10, gravity: 'c')
+      image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
+
+      expect(app).to receive(:parse_env_into_request).and_call_original
+      expect(app).to receive(:process_image_request).and_call_original
+      expect(app).to receive(:extract_params_from_request).and_call_original
+      expect(app).to receive(:image_rack_response).and_call_original
+      expect(app).to receive(:permitted_format?).and_call_original
+
+      get image_request.to_path_params('l33tness')
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['Content-Type']).to eq('image/jpeg')
+      expect(last_response['X-Content-Type-Options']).to eq('nosniff')
+
+      expect(last_response.headers).to have_key('Content-Length')
+      parsed_image = Magick::Image.from_blob(last_response.body)[0]
+      expect(parsed_image.columns).to eq(10)
+    end
   end
 end

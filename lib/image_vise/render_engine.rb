@@ -6,7 +6,7 @@
     def mime
       Rack::Mime.mime_type(ext)
     end
-    
+
     def ext
       ".#{format_parser_format}"
     end
@@ -161,6 +161,7 @@
     raise UnsupportedInputFormat.new("%s does not pass file constraints" % source_image_uri) unless permitted_format?(file_format)
 
     render_destination_file = Tempfile.new('imagevise-render').tap{|f| f.binmode }
+    @file_extension = source_image_uri.path.split('.').last
 
     # Do the actual imaging stuff
     expire_after = Measurometer.instrument('image_vise.render_engine.apply_pipeline') do
@@ -297,9 +298,9 @@
 
     # Load the first frame of the animated GIF _or_ the blended compatibility layer from Photoshop
     image_list = Measurometer.instrument('image_vise.load_pixbuf') do
-      Magick::Image.read(source_file_path)
+      @file_extension.nil? ? Magick::Image.read(source_file_path) : Magick::Image.read("#{@file_extension}:#{source_file_path}")
     end
-      
+
     magick_image = image_list.first # Picks up the "precomp" PSD layer in compatibility mode, or the first frame of a GIF
 
     # If any operators want to stash some data for downstream use we use this Hash
