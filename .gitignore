@@ -6,3 +6,4 @@ Gemfile.lock
 *.log
 pkg
 coverage
+.ruby-version
