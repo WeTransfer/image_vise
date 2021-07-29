@@ -1,7 +1,7 @@
 # Applies a transformation using an ImageMagick geometry string
 #
 # The corresponding Pipeline method is `geom`.
-class ImageVise::Geom < Ks.strict(:geometry_string)
+class ImageVise::Geom < Struct.new(:geometry_string, keyword_init: true)
   def initialize(*)
     super
     self.geometry_string = geometry_string.to_s

@@ -2,7 +2,7 @@
 # of ImageMagick gravity parameters (see GRAVITY_PARAMS)
 #
 # The corresponding Pipeline method is `crop`.
-class ImageVise::Crop < Ks.strict(:width, :height, :gravity)
+class ImageVise::Crop < Struct.new(:width, :height, :gravity, keyword_init: true)
   GRAVITY_PARAMS = {
     'nw' => Magick::NorthWestGravity,
     'n' => Magick::NorthGravity,

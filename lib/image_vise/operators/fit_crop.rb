@@ -3,7 +3,7 @@
 # gravity parameter defines the crop gravity (on corners, sides, or in the middle).
 #
 # The corresponding Pipeline method is `fit_crop`.
-class ImageVise::FitCrop < Ks.strict(:width, :height, :gravity)
+class ImageVise::FitCrop < Struct.new(:width, :height, :gravity, keyword_init: true)
   GRAVITY_PARAMS = {
     'nw' => Magick::NorthWestGravity,
     'n' => Magick::NorthGravity,

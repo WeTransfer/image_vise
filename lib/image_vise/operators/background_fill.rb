@@ -2,7 +2,7 @@
 # Can handle most 'word' colors and hex color codes but not RGB values.
 #
 # The corresponding Pipeline method is `background_fill`.
-class ImageVise::BackgroundFill < Ks.strict(:color)
+class ImageVise::BackgroundFill < Struct.new(:color, keyword_init: true)
   def initialize(*)
     super
     self.color = color.to_s

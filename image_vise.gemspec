@@ -29,7 +29,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'patron', '~> 0.9'
   spec.add_dependency 'rmagick', '~> 3'
-  spec.add_dependency 'ks'
   spec.add_dependency 'rack', '>= 1', '< 3'
   spec.add_dependency 'format_parser', '~> 0.25'
   spec.add_dependency 'measurometer', '~> 1'

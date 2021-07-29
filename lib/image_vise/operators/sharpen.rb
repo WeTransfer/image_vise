@@ -1,7 +1,7 @@
 # Applies a sharpening filter to the image.
 #
 # The corresponding Pipeline method is `sharpen`.
-class ImageVise::Sharpen < Ks.strict(:radius, :sigma)
+class ImageVise::Sharpen < Struct.new(:radius, :sigma, keyword_init: true)
   def initialize(*)
     super
     self.radius = radius.to_f

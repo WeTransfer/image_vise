@@ -1,4 +1,4 @@
-class ImageVise::JPGWriter < Ks.strict(:quality)
+class ImageVise::JPGWriter < Struct.new(:quality, keyword_init: true)
   JPG_EXT = 'jpg'
 
   def write_image!(magick_image, _, render_to_path)
