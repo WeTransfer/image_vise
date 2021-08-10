@@ -27,11 +27,11 @@ class ImageVise::Pipeline
     @ops.empty?
   end
 
-  def method_missing(method_name, *a, &blk)
+  def method_missing(method_name, args = {}, &blk)
     operator_builder = ImageVise.operator_from(method_name)
-    self << operator_builder.new(*a)
+    self << operator_builder.new(**args)
   end
-  
+
   def respond_to_missing?(method_name, *a)
     ImageVise.defined_operators.include?(method_name.to_s)
   end
