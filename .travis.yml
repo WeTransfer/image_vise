@@ -2,7 +2,6 @@ language: ruby
 rvm:
 - 2.7.4
 - 3.0.2
-sudo: false
 cache: bundler
 env:
   global:
