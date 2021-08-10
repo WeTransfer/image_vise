@@ -249,7 +249,7 @@ describe ImageVise::RenderEngine do
     it 'URI-decodes the path in a file:// URL for a file with a Unicode path' do
       utf8_file_path = File.dirname(test_image_path) + '/картинка.jpg'
       FileUtils.cp_r(test_image_path, utf8_file_path)
-      uri = 'file://' + URI.encode(utf8_file_path)
+      uri = 'file://' + URI.encode_www_form_component(utf8_file_path)
 
       ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
       ImageVise.add_secret_key!('l33tness')
@@ -264,7 +264,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'forbids a request with an extra GET param' do
-      uri = 'file://' + URI.encode(test_image_path)
+      uri = 'file://' + URI.encode_www_form_component(test_image_path)
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)

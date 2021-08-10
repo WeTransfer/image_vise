@@ -64,7 +64,7 @@ path access using the glob whitelist)
         # Convert an internal "pic://sites/uploads/abcdef.jpg" to a full path URL
         partial_path = URI.decode(uri_object.path)
         full_path = File.join(Mappe::ROOT, 'sites', partial_path)
-        full_path_uri = URI('file://' + URI.encode(full_path))
+        full_path_uri = URI('file://' + URI.encode_www_form_component(full_path))
         super(full_path_uri)
       end
       ImageVise.register_fetcher 'pic', self
