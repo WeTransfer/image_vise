@@ -22,7 +22,7 @@ class ImageVise::FetcherFile
   end
 
   def self.uri_to_path(uri)
-    File.expand_path(URI.decode(uri.path))
+    File.expand_path(Addressable::URI.unencode(uri.path))
   end
 
   def self.verify_filesystem_access!(path_on_filesystem)
