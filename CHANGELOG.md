@@ -1,6 +1,6 @@
 ## 1.0.0
-* Add support for Ruby 2.7 and onwards (including Ruby 3.0)
-* Drop support for Ruby 2.6 and lower
+* Add support for Ruby 2.6 and onwards (including Ruby 3.0)
+* Drop support for Ruby 2.5 and lower
 * Remove `ks` dependency
 * Add `addressable` runtime dependency
 
