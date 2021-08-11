@@ -27,9 +27,16 @@ class ImageVise::Pipeline
     @ops.empty?
   end
 
-  def method_missing(method_name, args = {}, &blk)
-    operator_builder = ImageVise.operator_from(method_name)
-    self << operator_builder.new(**args)
+  if RUBY_VERSION.start_with?("2.6")
+    def method_missing(method_name, *args, &blk)
+      operator_builder = ImageVise.operator_from(method_name)
+      self << operator_builder.new(*args)
+    end
+  else
+    def method_missing(method_name, args = {}, &blk)
+      operator_builder = ImageVise.operator_from(method_name)
+      self << operator_builder.new(**args)
+    end
   end
 
   def respond_to_missing?(method_name, *a)
