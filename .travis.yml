@@ -1,7 +1,6 @@
 language: ruby
 rvm:
-- 2.6.8
-- 2.7.4
+- 2.5
 - 3.0.2
 cache: bundler
 env:
