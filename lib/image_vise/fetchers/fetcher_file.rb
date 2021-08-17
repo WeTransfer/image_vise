@@ -22,7 +22,10 @@ class ImageVise::FetcherFile
   end
 
   def self.uri_to_path(uri)
-    File.expand_path(Addressable::URI.unencode(uri.path))
+    # The peculiar aspecf of this is that in the file:// URI path components are percent-encoded
+    # but the slashes are not, and URI does not have a built-in function to deal with this
+    path_percent_decoded = uri.path.split('/').map { |component| URI.decode_www_form_component(component) }.join('/')
+    File.expand_path(path_percent_decoded)
   end
 
   def self.verify_filesystem_access!(path_on_filesystem)
