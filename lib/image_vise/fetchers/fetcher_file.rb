@@ -21,11 +21,20 @@ class ImageVise::FetcherFile
     raise e
   end
 
+  def self.decode_file_uri_path(path_with_percent_encoded_components)
+    path_with_percent_encoded_components.split('/').map { |component| URI.decode_www_form_component(component) }.join('/')
+  end
+
+  def self.file_url_for(path)
+    "file://#{encode_file_uri_path(path)}"
+  end
+
+  def self.encode_file_uri_path(path)
+    path.split('/').map { |component| URI.encode_www_form_component(component) }.join('/')
+  end
+
   def self.uri_to_path(uri)
-    # The peculiar aspecf of this is that in the file:// URI path components are percent-encoded
-    # but the slashes are not, and URI does not have a built-in function to deal with this
-    path_percent_decoded = uri.path.split('/').map { |component| URI.decode_www_form_component(component) }.join('/')
-    File.expand_path(path_percent_decoded)
+    File.expand_path(decode_file_uri_path(uri.path))
   end
 
   def self.verify_filesystem_access!(path_on_filesystem)
