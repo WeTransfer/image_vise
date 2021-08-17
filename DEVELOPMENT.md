@@ -62,9 +62,9 @@ path access using the glob whitelist)
     class PicFetcher < ImageVise::FetcherFile
       def self.fetch_uri_to_tempfile(uri_object)
         # Convert an internal "pic://sites/uploads/abcdef.jpg" to a full path URL
-        partial_path = URI.decode(uri_object.path)
-        full_path = File.join(Mappe::ROOT, 'sites', partial_path)
-        full_path_uri = URI('file://' + URI.encode(full_path))
+        partial_path = decode_file_uri_path(uri_object.path)
+        full_filesystem_path = File.join(Mappe::ROOT, 'sites', partial_path)
+        full_path_uri = URI(file_url_for(full_filesystem_path))
         super(full_path_uri)
       end
       ImageVise.register_fetcher 'pic', self

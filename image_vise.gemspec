@@ -22,6 +22,8 @@ Gem::Specification.new do |spec|
     raise "RubyGems 2.0 or newer is required to protect against public gem pushes."
   end
 
+  spec.required_ruby_version = ">= 2.5"
+
   spec.files         = `git ls-files -z`.split("\x0")
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
@@ -29,18 +31,16 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'patron', '~> 0.9'
   spec.add_dependency 'rmagick', '~> 3'
-  spec.add_dependency 'ks'
   spec.add_dependency 'rack', '>= 1', '< 3'
   spec.add_dependency 'format_parser', '~> 0.25'
   spec.add_dependency 'measurometer', '~> 1'
 
   spec.add_development_dependency 'magic_bytes', '~> 1'
-  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", "~> 12.2"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rspec", "~> 3"
-  spec.add_development_dependency "addressable"
   spec.add_development_dependency "strenv"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "pry"
+  spec.add_development_dependency "webrick"
 end

@@ -8,7 +8,6 @@ Bundler.require
 
 require 'tmpdir'
 require 'securerandom'
-require 'addressable/uri'
 require 'strenv'
 require 'pry'
 require 'magic_bytes'

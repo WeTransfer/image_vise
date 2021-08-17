@@ -33,7 +33,7 @@ describe ImageVise::RenderEngine do
 
   context 'when requesting an image' do
     before :each do
-      parsed_url = Addressable::URI.parse(public_url)
+      parsed_url = URI.parse(public_url)
       ImageVise.add_allowed_host!(parsed_url.host)
     end
 
@@ -43,7 +43,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'halts with 400 when the requested image cannot be opened by ImageMagick' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
       uri.path = '/___nonexistent_image.jpg'
@@ -76,7 +76,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'responds with 403 when upstream returns it, and includes the URL in the error message' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
       uri.path = '/forbidden'
@@ -93,7 +93,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'replays upstream error response codes that are selected to be replayed to the requester' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -118,7 +118,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'sets very far caching headers and an ETag, and returns a 304 if any ETag is set' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -142,7 +142,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'allows for setting a custom cache lifetime' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -158,7 +158,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'uses the correct default cache lifetime if one is not specified' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -173,7 +173,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'responds with an image that passes through all the processing steps' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -216,7 +216,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'calls all of the internal methods during execution' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -249,7 +249,7 @@ describe ImageVise::RenderEngine do
     it 'URI-decodes the path in a file:// URL for a file with a Unicode path' do
       utf8_file_path = File.dirname(test_image_path) + '/картинка.jpg'
       FileUtils.cp_r(test_image_path, utf8_file_path)
-      uri = 'file://' + URI.encode(utf8_file_path)
+      uri = 'file://' + ImageVise::FetcherFile.encode_file_uri_path(utf8_file_path)
 
       ImageVise.allow_filesystem_source!(File.dirname(test_image_path) + '/*.*')
       ImageVise.add_secret_key!('l33tness')
@@ -264,7 +264,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'forbids a request with an extra GET param' do
-      uri = 'file://' + URI.encode(test_image_path)
+      uri = 'file://' + ImageVise::FetcherFile.encode_file_uri_path(test_image_path)
 
       p = ImageVise::Pipeline.new.fit_crop(width: 10, height: 10, gravity: 'c')
       image_request = ImageVise::ImageRequest.new(src_url: uri.to_s, pipeline: p)
@@ -275,7 +275,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'returns the processed JPEG image as a PNG if it had to get an alpha channel during processing' do
-      uri = Addressable::URI.parse(public_url)
+      uri = URI.parse(public_url)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -292,7 +292,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'permits a PSD file by default' do
-      uri = Addressable::URI.parse(public_url_psd)
+      uri = URI.parse(public_url_psd)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -304,7 +304,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'destroys all the loaded PSD layers' do
-      uri = Addressable::URI.parse(public_url_psd_multilayer)
+      uri = URI.parse(public_url_psd_multilayer)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -324,7 +324,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'outputs a converted TIFF file as a PNG' do
-      uri = Addressable::URI.parse(public_url_tif)
+      uri = URI.parse(public_url_tif)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('l33tness')
 
@@ -341,7 +341,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'processes a 1.5mb PSD with a forced conversion to JPEG' do
-      uri = Addressable::URI.parse(public_url_psd)
+      uri = URI.parse(public_url_psd)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('1337ness')
 
@@ -357,7 +357,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'sets a customized Expires: cache lifetime set via the pipeline' do
-      uri = Addressable::URI.parse(public_url_psd)
+      uri = URI.parse(public_url_psd)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('1337ness')
 
@@ -370,7 +370,7 @@ describe ImageVise::RenderEngine do
     end
 
     it 'converts a PNG into a JPG applying a background fill' do
-      uri = Addressable::URI.parse(public_url_png_transparency)
+      uri = URI.parse(public_url_png_transparency)
       ImageVise.add_allowed_host!(uri.host)
       ImageVise.add_secret_key!('h00ray')
 

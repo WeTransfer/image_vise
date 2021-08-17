@@ -1,4 +1,3 @@
-require 'ks'
 require 'json'
 require 'patron'
 require 'rmagick'

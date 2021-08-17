@@ -95,7 +95,7 @@ end
 
 If you want to grab a local file, compose a `file://` URL (mind the endcoding!)
 
-    src_url = 'file://' + URI.encode(File.expand_path(my_pic))
+    src_url = 'file://' + ImageVise::FetcherFile.encode_file_uri_path(File.expand_path(my_pic))
 
 Note that you need to permit certain glob patterns as sources before this will work, see below.
 

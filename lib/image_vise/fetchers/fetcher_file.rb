@@ -21,8 +21,20 @@ class ImageVise::FetcherFile
     raise e
   end
 
+  def self.decode_file_uri_path(path_with_percent_encoded_components)
+    path_with_percent_encoded_components.split('/').map { |component| URI.decode_www_form_component(component) }.join('/')
+  end
+
+  def self.file_url_for(path)
+    "file://#{encode_file_uri_path(path)}"
+  end
+
+  def self.encode_file_uri_path(path)
+    path.split('/').map { |component| URI.encode_www_form_component(component) }.join('/')
+  end
+
   def self.uri_to_path(uri)
-    File.expand_path(URI.decode(uri.path))
+    File.expand_path(decode_file_uri_path(uri.path))
   end
 
   def self.verify_filesystem_access!(path_on_filesystem)

@@ -1,6 +1,6 @@
 require 'openssl'
 
-class ImageVise::ImageRequest < Ks.strict(:src_url, :pipeline)
+class ImageVise::ImageRequest < Struct.new(:src_url, :pipeline, keyword_init: true)
   class InvalidRequest < ArgumentError; end
   class SignatureError < InvalidRequest; end
   class URLError < InvalidRequest; end

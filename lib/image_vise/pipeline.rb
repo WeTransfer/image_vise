@@ -27,11 +27,16 @@ class ImageVise::Pipeline
     @ops.empty?
   end
 
-  def method_missing(method_name, *a, &blk)
+  def method_missing(method_name, args = {}, &blk)
     operator_builder = ImageVise.operator_from(method_name)
-    self << operator_builder.new(*a)
+
+    if args.empty? # TODO: remove conditional after dropping Ruby 2.6 support
+      self << operator_builder.new
+    else
+      self << operator_builder.new(**args)
+    end
   end
-  
+
   def respond_to_missing?(method_name, *a)
     ImageVise.defined_operators.include?(method_name.to_s)
   end
